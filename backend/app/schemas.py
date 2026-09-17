@@ -30,6 +30,22 @@ class JobApplicationCreate(BaseModel):
 
     notes: str | None = None
 
+# When updating an existing job application. (PATCH)    
+class JobApplicationUpdate(BaseModel):
+    company: str | None = Field(default=None, min_length=1, max_length=200)
+    job_title: str | None = Field(default=None, min_length=1, max_length=200)
+
+    location: str | None = Field(default=None, max_length=200)
+    job_url: str | None = None
+
+    description: str | None = None
+    requirements: str | None = None
+
+    status: ApplicationStatus | None = None
+    applied_date: date | None = None
+
+    notes: str | None = None
+
 # This class inherite all columns from JobApplicationCreate
 class JobApplicationResponse(JobApplicationCreate):
     # Important to not cause a conflict with the database columns, we need to set the model_config to from_attributes=True

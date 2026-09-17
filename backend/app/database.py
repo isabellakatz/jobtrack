@@ -20,3 +20,12 @@ SessionLocal = sessionmaker(
 
 class Base(DeclarativeBase):
     pass
+
+# Dependency function to get a database session for each request
+def get_db():
+    # create a new session - temporary connection to the database
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
