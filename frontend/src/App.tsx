@@ -2,7 +2,9 @@ import { useEffect, useState } from "react"
 
 import {
   createApplication,
-  getApplications 
+  deleteApplication,
+  getApplications,
+  updateApplication
 } from "./services/applicationApi"
 
 import type {
@@ -14,6 +16,7 @@ import "./App.css"
 
 
 function App() {
+  // 1. STATE
   //The App component is the main component of the application. It fetches job applications from the backend and displays them in a list.
   const [applications, setApplications] = useState<JobApplication[]>([])
   const [loading, setLoading] = useState(true)
@@ -22,6 +25,13 @@ function App() {
   // selectedApplication = keeps track of the currently selected job application.
   const [selectedApplicationId, setSelectedApplicationId] =
   useState<number | null>(null)
+
+  // editStatus = separate form to edit the status of a selected job application.
+  const [editStatus, setEditStatus] = 
+    useState<ApplicationStatus>("saved")
+  
+    // editNotes = separate form to edit the notes of a selected job application.
+  const [editNotes, setEditNotes] = useState("")
 
   const [company, setCompany] = useState("")
   const [jobTitle, setJobTitle] = useState("")
@@ -36,6 +46,7 @@ function App() {
 
   const [submitting, setSubmitting] = useState(false)
 
+  // 2. LOAD APPLICATIONS WHEN APP STARTS
   // The useEffect hook runs the code when the component loads for the first time. 
   // It fetches the job applications from the backend and sets the state accordingly.
   useEffect(() => {
@@ -55,11 +66,21 @@ function App() {
     loadApplications()
   }, [])
 
+  // 3. FIND CURRENTLY SELECTED APPLICATION
   const selectedApplication =
     applications.find(
       (application) => application.id === selectedApplicationId
     ) ?? null
+
+    // 4. LOAD SELECTED APPLICATION DETAILS INTO EDIT FIELDS
+    useEffect(() => {
+      if (selectedApplication) {
+        setEditStatus(selectedApplication.status)
+        setEditNotes(selectedApplication.notes ?? "")
+      }
+    }, [selectedApplication])
   
+    // 5. CREATE A NEW APPLICATION
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
   // Prevent the default form submission behavior, which would cause a page reload.
     event.preventDefault()
@@ -105,6 +126,75 @@ function App() {
   }
 }
 
+// 6. UPDATE AN EXISTING APPLICATION
+async function handleUpdate() {
+  // if no application is selected = nothing to update, so return early from the function.
+  if (!selectedApplication) {
+    return
+  }
+
+  try {
+    setError(null)
+
+    // updateApplication() = Send a PATCH request to the backend to update the selected job application 
+    // with the new status and notes.
+    const updatedApplication = await updateApplication(
+      selectedApplication.id,
+      {
+        status: editStatus,
+        notes: editNotes || null,
+      }
+    )
+
+    // .map() = Iterate over the current list of applications and replace the updated application with the new data.
+    setApplications((currentApplications) =>
+      currentApplications.map((application) =>
+        application.id === updatedApplication.id
+          ? updatedApplication
+          : application
+      )
+    )
+  } catch {
+    setError("Could not update application.")
+  }
+}
+
+  // 8. DELETE AN APPLICATION
+  async function handleDelete() {
+  if (!selectedApplication) {
+    return
+  }
+
+  // window.confirm() = Show a confirmation dialog to the user before deleting the application.
+  const confirmed = window.confirm(
+    `Are you sure you want to delete ${selectedApplication.company} - ${selectedApplication.job_title}?`
+  )
+
+  // The user clicked "Cancel" in the confirmation dialog, so return early from the function.
+  if (!confirmed) {
+    return
+  }
+
+  try {
+    setError(null)
+
+    // Sends DELETE-request to the backend (FastAPI) to delete the selected job application.
+    await deleteApplication(selectedApplication.id)
+
+    // Update the React state to remove the deleted application from the list and clear the selected application.
+    setApplications((currentApplications) =>
+      currentApplications.filter(
+        (application) => application.id !== selectedApplication.id
+      )
+    )
+
+    setSelectedApplicationId(null)
+  } catch {
+    setError("Could not delete application.")
+  }
+}
+
+  //9. EARLY RETURNS
   // Still waiting for the applications to load, show a loading message. If there was an error, show the error message. Otherwise, display the list of applications.
   if (loading) {
     return <p>Loading applications...</p>
@@ -114,7 +204,6 @@ function App() {
   if (error) {
     return <p>{error}</p>
   }
-
 
   return (
     <main>
@@ -172,7 +261,6 @@ function App() {
     <label htmlFor="description">Description</label>
     <textarea
       id="description"
-      type="text"
       value={description}
       onChange={(event) => setDescription(event.target.value)}
     />
@@ -180,9 +268,8 @@ function App() {
 
   <div>
     <label htmlFor="requirements">Requirements</label>
-    <input
+    <textarea
       id="requirements"
-      type="text"
       value={requirements}
       onChange={(event) => setRequirements(event.target.value)}
     />
@@ -254,9 +341,27 @@ function App() {
         {selectedApplication.location || "Not specified"}
       </p>
 
-      <p>
-        <strong>Status:</strong> {selectedApplication.status}
-      </p>
+      <div>
+  <label htmlFor="edit-status">
+    <strong>Status:</strong>
+  </label>
+
+  <select
+    id="edit-status"
+    value={editStatus}
+    onChange={(event) =>
+      setEditStatus(event.target.value as ApplicationStatus)
+    }
+  >
+    <option value="saved">Saved</option>
+    <option value="applied">Applied</option>
+    <option value="screening">Screening</option>
+    <option value="interview">Interview</option>
+    <option value="offer">Offer</option>
+    <option value="rejected">Rejected</option>
+    <option value="withdrawn">Withdrawn</option>
+  </select>
+</div>
 
       <p>
         <strong>Applied date:</strong>{" "}
@@ -285,11 +390,30 @@ function App() {
       <p>
         {selectedApplication.requirements || "No requirements saved."}
       </p>
+      <div>
+  <label htmlFor="edit-notes">
+    <strong>Notes:</strong>
+  </label>
 
-      <h4>Notes</h4>
-      <p>
-        {selectedApplication.notes || "No notes added."}
-      </p>
+  <textarea
+    id="edit-notes"
+    value={editNotes}
+    onChange={(event) => setEditNotes(event.target.value)}
+  />
+</div>
+      <button type="button" 
+      onClick={handleUpdate}
+      >
+        Save changes
+      </button>
+
+      <button
+      type = "button"
+      onClick={handleDelete}
+      >
+        Delete application
+      </button>
+
     </div>
   ) : (
     <p>Select an application to view its details.</p>

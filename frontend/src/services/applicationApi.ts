@@ -1,6 +1,8 @@
 import type {
     JobApplication,
-JobApplicationCreate } from "../types/application"
+JobApplicationCreate,
+JobApplicationUpdate
+} from "../types/application"
 
 const API_URL = "http://127.0.0.1:8000"
 
@@ -32,4 +34,43 @@ export async function createApplication(
   }
 
   return response.json()
+}
+
+// React sends a PATCH request to the backend to update an existing job application with the specified applicationId and updates.
+export async function updateApplication(
+  applicationId: number,
+  updates: JobApplicationUpdate
+): Promise<JobApplication> {
+  const response = await fetch(
+    `${API_URL}/applications/${applicationId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updates),
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to update application")
+  }
+
+  return response.json()
+}
+
+// Delete a job application with the specified applicationId.
+export async function deleteApplication(
+  applicationId: number
+): Promise<void> {
+    const response = await fetch(
+        `${API_URL}/applications/${applicationId}`,
+        {
+            method: "DELETE",
+        }
+    )
+
+    if (!response.ok) {
+        throw new Error("Failed to delete application")
+    }
 }

@@ -44,3 +44,20 @@ export interface JobApplicationCreate {
 
   notes?: string | null
 }
+
+export interface JobApplicationUpdate {
+    // ? means that the property is optional, so it can be omitted when creating or updating a job application.
+  company?: string
+  job_title?: string
+
+  location?: string | null
+  job_url?: string | null
+
+  description?: string | null
+  requirements?: string | null
+
+  status?: ApplicationStatus
+  applied_date?: string | null
+
+  notes?: string | null
+}
