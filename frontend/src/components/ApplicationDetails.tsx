@@ -67,7 +67,7 @@ async function handleDelete() {
 }
 
       return (
-    <section>
+    <section className="application-details">
       <h2>Application details</h2>
 
       {application ? (
@@ -153,6 +153,7 @@ async function handleDelete() {
 
           <button
             type="button"
+            className="save-button"
             onClick={handleSave}
           >
             Save changes
@@ -160,6 +161,7 @@ async function handleDelete() {
 
           <button
             type="button"
+            className="delete-button"
             onClick={handleDelete}
           >
             Delete application
