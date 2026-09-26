@@ -17,7 +17,7 @@ function ApplicationList({
   onSelect,
 }: ApplicationListProps) {
   return (
-    <section>
+    <section className="application-list">
       <h2>Applications</h2>
 
       {applications.length === 0 ? (
@@ -32,11 +32,19 @@ function ApplicationList({
                 // The aria-pressed attribute is used to indicate that the current button is in a pressed state (active).
                 aria-pressed={application.id === selectedApplicationId}
               >
-                <strong>{application.company}</strong>
-                {" — "}
-                {application.job_title}
-                {" — "}
-                {application.status}
+                <span className="application-company">
+                    {application.company}
+                </span>
+
+                <span className="application-role">
+                    {application.job_title}
+                </span>
+
+                <span 
+                    className={`application-status status-${application.status}`}
+                >
+                    {application.status}
+                </span>
               </button>
             </li>
           ))}

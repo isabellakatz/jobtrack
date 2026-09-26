@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react"
+import { useState } from "react"
 
 import type {
     ApplicationStatus,
@@ -63,7 +63,7 @@ function ApplicationForm({
   }
 
   return (
-    <section>
+    <section className="application-form">
       <h2>Add application</h2>
 
       <form onSubmit={handleSubmit}>
@@ -217,7 +217,6 @@ function ApplicationForm({
             }
           />
         </div>
-
 
         <button
           type="submit"

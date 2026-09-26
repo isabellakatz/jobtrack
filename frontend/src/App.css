@@ -1,4 +1,185 @@
-.counter {
+#root {
+  width: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f6f7f9;
+  font-family: Arial, sans-serif;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 3rem;
+}
+
+.app-header p {
+  margin-top: 8px;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 24px;
+  align-items: start;
+}
+
+section {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+section h2 {
+  margin-top: 0;
+}
+
+.application-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.application-form form > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.application-form label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.application-form input,
+.application-form textarea,
+.application-form select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.application-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.application-form button {
+  margin-top: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.application-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.application-list li {
+  margin-bottom: 10px;
+}
+
+.application-list li button {
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font: inherit;
+
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  align-items: center;
+}
+
+/* hover-effect */
+.application-list li button:hover {
+  background: #f9fafb;
+}
+
+.application-company {
+  font-weight: 700;
+}
+
+.application-role {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.application-status {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  justify-self: end;
+
+  padding: 4px 10px;
+  border-radius: 999;
+
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-saved {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.status-applied {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-screening {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.status-interview {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-offer {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.status-withdrawn {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* .counter {
   font-size: 16px;
   padding: 5px 10px;
   border-radius: 5px;
@@ -182,3 +363,4 @@
     border-right-color: var(--border);
   }
 }
+ */

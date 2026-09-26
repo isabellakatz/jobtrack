@@ -150,10 +150,13 @@ async function handleUpdateApplication(
   }
 
   return (
-    <main>
-      <h1>JobTrack</h1>
-      <p>Track your job applications in one place.</p>
+    <main className="app">
+      <header className="app-header">
+        <h1>JobTrack</h1>
+        <p>Track your job applications in one place.</p>
+      </header>
 
+      <div className="app-grid">
       <ApplicationForm
         onCreate={handleCreateApplication}
       />
@@ -163,6 +166,7 @@ async function handleUpdateApplication(
         selectedApplicationId={selectedApplicationId}
         onSelect={setSelectedApplicationId}
       />
+    </div>
 
       <ApplicationDetails
       application={selectedApplication}
