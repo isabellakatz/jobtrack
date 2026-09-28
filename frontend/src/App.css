@@ -259,3 +259,28 @@ section h2 {
 .application-details button {
   margin-right: 8px;
 }
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* show the content in two same columns*/
+  gap: 16px;
+}
+
+.stat-card {
+  padding: 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: white;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+}

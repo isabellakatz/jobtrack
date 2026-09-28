@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import ApplicationForm from "./components/ApplicationForm"
 import ApplicationList from "./components/ApplicationList"
 import ApplicationDetails from "./components/ApplicationDetails"
+import Dashboard from "./components/Dashboard"
 
 import {
   createApplication,
@@ -155,6 +156,10 @@ async function handleUpdateApplication(
         <h1>JobTrack</h1>
         <p>Track your job applications in one place.</p>
       </header>
+
+      <Dashboard
+        applications={applications}
+      />
 
       <div className="app-grid">
       <ApplicationForm

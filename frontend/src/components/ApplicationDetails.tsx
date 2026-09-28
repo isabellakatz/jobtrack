@@ -33,10 +33,14 @@ function ApplicationDetails({
     // Local state for editing the selected application's notes
   const [editNotes, setEditNotes] = useState("")
 
+  // Notes is read only, true = can edit.
+  const [isEditingNotes, setIsEditingNotes] = useState(false)
+
   useEffect(() => {
     if (application) {
       setEditStatus(application.status)
       setEditNotes(application.notes ?? "")
+      setIsEditingNotes(false)
     }
 }, [application])
 
@@ -49,6 +53,8 @@ async function handleSave() {
         status: editStatus,
         notes: editNotes || null,
     })
+
+    setIsEditingNotes(false)
 }
 
 async function handleDelete() {
@@ -145,11 +151,20 @@ async function handleDelete() {
             <textarea
               id="edit-notes"
               value={editNotes}
+              readOnly={!isEditingNotes}
               onChange={(event) =>
                 setEditNotes(event.target.value)
               }
             />
           </div>
+
+            <button
+            type="button"
+            onClick={() => setIsEditingNotes(true)}
+          >
+            Edit notes
+          </button>
+
 
           <button
             type="button"
