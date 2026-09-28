@@ -7,10 +7,15 @@ import type {
 // Which is a list of job applications
 interface DashboardProps {
   applications: JobApplication[]
+
+  onStatusSelect: (
+    status: ApplicationStatus | "all"
+  ) => void
 }
 
 function Dashboard({
     applications,
+    onStatusSelect,
 }: DashboardProps) {
 
 function countByStatus(status : ApplicationStatus) {
@@ -32,7 +37,13 @@ const withdrawnCount = countByStatus("withdrawn")
             <h2>Dashboard</h2>
             {/* dashboard-stats --> holds all the small boxes, stat-cards --> represents one box alone */}
             <div className="dashboard-stats">
-                <div className="stat-card">
+                <button
+                    type="button"
+                    className="stat-card"
+                    onClick={() =>
+                        onStatusSelect("all")
+                    }
+                >
                     <span className="stat-label">
                         Total applications
                     </span>
@@ -40,9 +51,15 @@ const withdrawnCount = countByStatus("withdrawn")
                     <span className="stat-value">
                         {applications.length}
                     </span>
-                </div>
+                </button>
 
-                <div className="stat-card">
+                <button
+                    type="button"
+                    className="stat-card"
+                    onClick={() =>
+                        onStatusSelect("applied")
+                    }
+                >
                     <span className="stat-label">
                         Applied
                     </span>
@@ -50,9 +67,15 @@ const withdrawnCount = countByStatus("withdrawn")
                     <span className="stat-value">
                         {appliedCount}
                     </span>
-                </div>
+                </button>
 
-                <div className="stat-card">
+                <button
+                    type="button"
+                    className="stat-card"
+                    onClick={() =>
+                        onStatusSelect("saved")
+                    }
+                >
                     <span className="stat-label">
                         Saved
                     </span>
@@ -60,55 +83,87 @@ const withdrawnCount = countByStatus("withdrawn")
                     <span className="stat-value">
                         {savedCount}
                     </span>
-                </div>
+                </button>
 
-                <div className="stat-card">
+                <button
+                    type="button"
+                    className="stat-card"
+                    onClick={() =>
+                        onStatusSelect("screening")
+                    }
+                >
                     <span className="stat-label">
                         Screening
                     </span>
+
                     <span className="stat-value">
                         {screeningCount}
                     </span>
-                </div>
+                </button>
 
-                <div className="stat-card">
+                <button
+                    type="button"
+                    className="stat-card"
+                    onClick={() =>
+                        onStatusSelect("interview")
+                    }
+                >
                     <span className="stat-label">
                         Interview
                     </span>
+
                     <span className="stat-value">
                         {interviewCount}
                     </span>
-                </div>
+                </button>
 
-                <div className="stat-card">
+                <button
+                    type="button"
+                    className="stat-card"
+                    onClick={() =>
+                        onStatusSelect("rejected")
+                    }
+                >
                     <span className="stat-label">
                         Rejected
                     </span>
+
                     <span className="stat-value">
                         {rejectedCount}
                     </span>
-                </div>
-
-                <div className="stat-card">
+                </button>    
+                
+                <button
+                    type="button"
+                    className="stat-card"
+                    onClick={() =>
+                        onStatusSelect("offer")
+                    }
+                >
                     <span className="stat-label">
                         Offer
                     </span>
+
                     <span className="stat-value">
                         {offerCount}
                     </span>
+                </button>
 
-                </div>
-                
-                <div className="stat-card">
+                <button
+                    type="button"
+                    className="stat-card"
+                    onClick={() =>
+                        onStatusSelect("withdrawn")
+                    }
+                >
                     <span className="stat-label">
                         Withdrawn
                     </span>
+
                     <span className="stat-value">
                         {withdrawnCount}
                     </span>
-
-                </div>
-
+                </button>
             </div>
         </section>
     )

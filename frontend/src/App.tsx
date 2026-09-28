@@ -13,6 +13,7 @@ import {
 } from "./services/applicationApi"
 
 import type {
+  ApplicationStatus,
   JobApplication,
   JobApplicationCreate,
   JobApplicationUpdate,
@@ -39,7 +40,16 @@ function App() {
   const [selectedApplicationId, setSelectedApplicationId] =
   useState<number | null>(null)
 
-
+  const [statusFilter, setStatusFilter] =
+  useState<ApplicationStatus | "all">("all")
+  
+  const filteredApplications =
+  statusFilter === "all"
+  ? applications
+  : applications.filter(
+    (application) =>
+      application.status === statusFilter
+  )
 
   // 2. LOAD APPLICATIONS WHEN APP STARTS
   // The useEffect hook runs the code when the component loads for the first time. 
@@ -159,6 +169,7 @@ async function handleUpdateApplication(
 
       <Dashboard
         applications={applications}
+        onStatusSelect={setStatusFilter}
       />
 
       <div className="app-grid">
@@ -167,7 +178,7 @@ async function handleUpdateApplication(
       />
 
       <ApplicationList
-        applications={applications}
+        applications={filteredApplications}
         selectedApplicationId={selectedApplicationId}
         onSelect={setSelectedApplicationId}
       />
