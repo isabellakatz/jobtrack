@@ -1,7 +1,19 @@
 from datetime import date, datetime
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
+
+# Data from when a user register
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+
+# Data sending back 
+class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True) 
+    id: int
+    email: EmailStr
+
 
 
 class ApplicationStatus(str, Enum):

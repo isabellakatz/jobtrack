@@ -1,10 +1,36 @@
 from datetime import date, datetime
 
+import sqlalchemy
 from sqlalchemy import Date, DateTime, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
 
+class User(Base):
+    __tablename__= "users"
+    
+    id = sqlalchemy.Column(
+        sqlalchemy.Integer,
+        primary_key=True
+    )
+    
+    email = sqlalchemy.Column(
+        sqlalchemy.String(255),
+        unique=True,
+        nullable=False
+    )
+    
+    # The users real password is never saved in the db, it is hashed
+    hashed_password = sqlalchemy.Column(    
+        sqlalchemy.String(255),
+        nullable=False
+    )
+    
+    # PostSQL automatically saves the time when the account is created
+    created_at = sqlalchemy.Column(
+        sqlalchemy.DateTime,
+        server_default=sqlalchemy.func.now()
+    )
 
 class JobApplication(Base):
     __tablename__ = "job_applications"

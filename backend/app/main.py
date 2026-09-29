@@ -3,7 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import models, schemas
 from app.database import get_db
+from app.security import hash_password
 from app.models import JobApplication
 from app.schemas import (
     JobApplicationCreate, 
@@ -28,6 +30,42 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {"message": "Oh yeah, JobTrack API is running!"}
+
+# (POST) Register new user
+@app.post(
+    "/auth/register",
+    response_model=schemas.UserResponse,
+    status_code=status.HTTP_201_CREATED
+)
+def register_user(
+    user_data: schemas.UserCreate,
+    db: Session = Depends(get_db)
+):
+    existing_user = (
+        db.query(models.User)
+        .filter(models.User.email == user_data.email)
+        .first()
+    )
+    
+    # Does not allow registration with a mail that is already registered
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    hashed_password = hash_password(user_data.password)
+    
+    new_user = models.User(
+        email=user_data.email,
+        hashed_password=hashed_password
+    )
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+        
+    return new_user
 
 # POST application endpoint
 @app.post(
