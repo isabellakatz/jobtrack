@@ -231,7 +231,21 @@ section h2 {
   border-color: #2563eb;
 }
 
+.application-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.application-long-text {
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: white;
+  margin-top: 6px;
+}
+
 .save-button,
+.edit-button,
+.cancel-button,
 .delete-button {
   padding: 10px 16px;
   border: none;
@@ -242,12 +256,30 @@ section h2 {
 }
 
 .save-button {
-  background: #2563eb;
+  background: #9caed5;
   color: white;
 }
 
+.edit-button {
+  background: #9caed5;
+  color: white;
+}
+
+.edit-button:hover {
+  background: #6880c3;
+}
+
+.cancel-button {
+  background: #9caed5;
+  color: white;
+}
+
+.cancel-button:hover {
+  background: #6880c3;
+}
+
 .save-button:hover {
-  background: #1d4ed8;
+  background: #6880c3;
 }
 
 .delete-button {
@@ -259,9 +291,7 @@ section h2 {
   background: #fecaca;
 }
 
-.application-details button {
-  margin-right: 8px;
-}
+
 
 .dashboard-stats {
   display: grid;
