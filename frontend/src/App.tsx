@@ -4,6 +4,7 @@ import ApplicationForm from "./components/ApplicationForm"
 import ApplicationList from "./components/ApplicationList"
 import ApplicationDetails from "./components/ApplicationDetails"
 import Dashboard from "./components/Dashboard"
+import Sidebar from "./components/sidebar"
 
 import {
   createApplication,
@@ -161,11 +162,13 @@ async function handleUpdateApplication(
   }
 
   return (
-    <main className="app">
-      <header className="app-header">
-        <h1>JobTrack</h1>
-        <p>Track your job applications in one place.</p>
-      </header>
+    <div className="app-layout">
+      <Sidebar />
+      <main className="app">
+        <header className="app-header">
+          <h1>JobTrack</h1>
+          <p>Track your job applications in one place.</p>
+        </header>
 
       <Dashboard
         applications={applications}
@@ -190,6 +193,7 @@ async function handleUpdateApplication(
       onDelete={handleDeleteApplication}
       />
     </main>
+  </div>
   )
 }
 

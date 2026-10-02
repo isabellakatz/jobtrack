@@ -8,6 +8,60 @@ body {
   font-family: sans-serif;
 }
 
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background: #1e1e2f;
+  color: #e5e7eb;
+  padding: 24px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-logo {
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+.sidebar-add-button {
+  margin-bottom: 24px;
+}
+
+.sidebar nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.side-nav-button {
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #e5e7eb;
+  cursor: pointer;
+  font: inherit;
+
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  align-items: center;
+}
+
 .app {
   max-width: 1200px;
   margin: 0 auto;
@@ -123,6 +177,10 @@ section h2 {
   grid-template-columns: 1fr auto;
   gap: 4px 12px;
   align-items: center;
+}
+
+.sidebar-nav-button:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* hover-effect */
