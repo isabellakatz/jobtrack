@@ -1,5 +1,5 @@
 import type {
-    JobApplication,
+JobApplication,
 JobApplicationCreate,
 JobApplicationUpdate
 } from "../types/application"

@@ -4,7 +4,7 @@ import ApplicationForm from "./components/ApplicationForm"
 import ApplicationList from "./components/ApplicationList"
 import ApplicationDetails from "./components/ApplicationDetails"
 import Dashboard from "./components/Dashboard"
-import Sidebar from "./components/sidebar"
+import Sidebar from "./components/Sidebar"
 
 import {
   createApplication,
@@ -24,33 +24,36 @@ import "./App.css"
 
 
 function App() {
-  // 1. STATE
+
+  // To keep track of the current view, we use a state variable called activeView. 
+  // It can be one of four values: "add", "dashboard", "applications", or "kanban". The default value is "dashboard".
+  const [activeView, setActiveView] = useState<"add" | "dashboard" | "applications" | "kanban">("dashboard")
+
   //The App component is the main component of the application. It fetches job applications from the backend and displays them in a list.
-  const [applications, setApplications] = 
-  useState<JobApplication[]>([])
-  
+  const [applications, setApplications] =
+    useState<JobApplication[]>([])
+
   // Used while applications are being loaded
-  const [loading, setLoading] = 
-  useState(true)
-  
+  const [loading, setLoading] =
+    useState(true)
+
   // Stores an error message if an API request fails
-  const [error, setError] = 
-  useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   // selectedApplication = keeps track of the currently selected job application
   const [selectedApplicationId, setSelectedApplicationId] =
-  useState<number | null>(null)
+    useState<number | null>(null)
 
   const [statusFilter, setStatusFilter] =
-  useState<ApplicationStatus | "all">("all")
-  
+    useState<ApplicationStatus | "all">("all")
+
   const filteredApplications =
-  statusFilter === "all"
-  ? applications
-  : applications.filter(
-    (application) =>
-      application.status === statusFilter
-  )
+    statusFilter === "all"
+      ? applications
+      : applications.filter(
+        (application) =>
+          application.status === statusFilter
+      )
 
   // 2. LOAD APPLICATIONS WHEN APP STARTS
   // The useEffect hook runs the code when the component loads for the first time. 
@@ -75,79 +78,86 @@ function App() {
   // 3. FIND CURRENTLY SELECTED APPLICATION
   const selectedApplication =
     applications.find(
-      (application) => 
+      (application) =>
         application.id === selectedApplicationId
     ) ?? null
 
-    // 5. CREATE A NEW APPLICATION - Is handled by the ApplicationForm component, which is a child of the App component. 
-    // The onCreate prop is passed to the ApplicationForm component, which calls the handleCreateApplication function when the form is submitted.
-async function handleCreateApplication(
-  applicationData: JobApplicationCreate
-) {
-  try {
-    setError(null)
+  // 5. CREATE A NEW APPLICATION - Is handled by the ApplicationForm component, which is a child of the App component. 
+  // The onCreate prop is passed to the ApplicationForm component, which calls the handleCreateApplication function when the form is submitted.
+  async function handleCreateApplication(
+    applicationData: JobApplicationCreate
+  ) {
+    try {
+      setError(null)
 
-    const newApplication = await createApplication(applicationData)
+      const newApplication = await createApplication(applicationData)
 
-    setApplications((currentApplications) => [
-      newApplication,
-      ...currentApplications,
-    ])
+      setApplications((currentApplications) => [
+        newApplication,
+        ...currentApplications,
+      ])
 
-    setSelectedApplicationId(newApplication.id)
-  } catch {
-    setError("Could not create application.")
+      setSelectedApplicationId(newApplication.id)
+    } catch {
+      setError("Could not create application.")
+    }
   }
-}
 
-// 6. UPDATE AN EXISTING APPLICATION
-async function handleUpdateApplication(
-  applicationId: number,
-  updates: JobApplicationUpdate
-) {
-  try {
-    setError(null)
+  function handleStatusSelect(
+    status: ApplicationStatus | "all"
+  ) {
+    setStatusFilter(status)
+    setActieveView("applications")
+  }
 
-    // updateApplication() = Send a PATCH request to the backend to update the selected job application 
-    // with the new status and notes.
-    const updatedApplication = 
-      await updateApplication(applicationId, updates)
+  // 6. UPDATE AN EXISTING APPLICATION
+  async function handleUpdateApplication(
+    applicationId: number,
+    updates: JobApplicationUpdate
+  ) {
+    try {
+      setError(null)
 
-    // .map() = Iterate over the current list of applications and replace the updated application with the new data.
-    setApplications((currentApplications) =>
-      currentApplications.map((application) =>
-        application.id === updatedApplication.id
-          ? updatedApplication
-          : application
+      // updateApplication() = Send a PATCH request to the backend to update the selected job application 
+      // with the new status and notes.
+      const updatedApplication =
+        await updateApplication(applicationId, updates)
+
+      // .map() = Iterate over the current list of applications and replace the updated application with the new data.
+      setApplications((currentApplications) =>
+        currentApplications.map((application) =>
+          application.id === updatedApplication.id
+            ? updatedApplication
+            : application
+        )
       )
-    )
-  } catch {
-    setError("Could not update application.")
+    } catch {
+      setError("Could not update application.")
+    }
   }
-}
 
   // 8. DELETE AN APPLICATION
   async function handleDeleteApplication(
     application: JobApplication
   ) {
-  try {
-    setError(null)
+    try {
+      setError(null)
 
-    // Sends DELETE-request to the backend (FastAPI) to delete the selected job application.
-    await deleteApplication(application.id)
+      // Sends DELETE-request to the backend (FastAPI) to delete the selected job application.
+      await deleteApplication(application.id)
 
-    // Update the React state to remove the deleted application from the list and clear the selected application.
-    setApplications((currentApplications) =>
-      currentApplications.filter(
-        (currentApplication) => currentApplication.id !== application.id
+      // Update the React state to remove the deleted application from the list and clear the selected application.
+      setApplications((currentApplications) =>
+        currentApplications.filter(
+          (currentApplication) => currentApplication.id !== application.id
+        )
       )
-    )
 
-    setSelectedApplicationId(null)
-  } catch {
-    setError("Could not delete application.")
+      setSelectedApplicationId(null)
+    } catch {
+      setError("Could not delete application.")
+    }
   }
-}
 
   //9. EARLY RETURNS
   // Still waiting for the applications to load, show a loading message. 
@@ -163,37 +173,48 @@ async function handleUpdateApplication(
 
   return (
     <div className="app-layout">
-      <Sidebar />
+      <Sidebar
+        onNavigate={setActiveView}
+      />
+
       <main className="app">
         <header className="app-header">
           <h1>JobTrack</h1>
           <p>Track your job applications in one place.</p>
         </header>
 
-      <Dashboard
-        applications={applications}
-        onStatusSelect={setStatusFilter}
-      />
+        <div className="app-content">
+          {activeView === "add" && (
+            <ApplicationForm
+              onCreate={handleCreateApplication}
+            />
+          )}
 
-      <div className="app-grid">
-      <ApplicationForm
-        onCreate={handleCreateApplication}
-      />
+          {activeView === "dashboard" && (
+            <Dashboard
+              applications={applications}
+              onStatusSelect={handleStatusSelect}
+            />
+          )}
 
-      <ApplicationList
-        applications={filteredApplications}
-        selectedApplicationId={selectedApplicationId}
-        onSelect={setSelectedApplicationId}
-      />
+          {activeView === "applications" && (
+            <>
+              <ApplicationList
+                applications={filteredApplications}
+                selectedApplicationId={selectedApplicationId}
+                onSelect={setSelectedApplicationId}
+              />
+
+              <ApplicationDetails
+                application={selectedApplication}
+                onUpdate={handleUpdateApplication}
+                onDelete={handleDeleteApplication}
+              />
+            </>
+          )}
+        </div>
+      </main>
     </div>
-
-      <ApplicationDetails
-      application={selectedApplication}
-      onUpdate={handleUpdateApplication}
-      onDelete={handleDeleteApplication}
-      />
-    </main>
-  </div>
   )
 }
 
