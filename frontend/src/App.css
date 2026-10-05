@@ -177,12 +177,12 @@ section h2 {
 }
 
 /*blue marking when an application is selected/pressed*/
-.application-list li button[aria-pressed="true"] {
+.application-card-button[aria-pressed="true"][aria-pressed="true"] {
   border-color: #2563eb;
   background: #eff6ff;
 }
 
-.application-list li button {
+.application-card-button {
   width: 100%;
   padding: 12px 16px;
   text-align: left;
@@ -199,7 +199,7 @@ section h2 {
 }
 
 /* hover-effect */
-.application-list li button:hover {
+.application-card-button:hover {
   background: #f9fafb;
 }
 

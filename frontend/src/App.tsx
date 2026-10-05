@@ -27,7 +27,7 @@ function App() {
 
   // To keep track of the current view, we use a state variable called activeView. 
   // It can be one of four values: "add", "dashboard", "applications", or "kanban". The default value is "dashboard".
-  const [activeView, setActiveView] = useState<"add" | "dashboard" | "applications" | "kanban">("dashboard")
+  const [activeView, setActiveView] = useState<"add" | "dashboard" | "applications" | "cv" | "kanban" | "contacts">("dashboard")
 
   //The App component is the main component of the application. It fetches job applications from the backend and displays them in a list.
   const [applications, setApplications] =
@@ -82,6 +82,15 @@ function App() {
         application.id === selectedApplicationId
     ) ?? null
 
+
+  // 4. SELECT AN APPLICATION
+  function handleSelectApplication(applicationId: number) {
+    setSelectedApplicationId(currentId =>
+      currentId === applicationId
+        ? null
+        : applicationId)
+  }
+
   // 5. CREATE A NEW APPLICATION - Is handled by the ApplicationForm component, which is a child of the App component. 
   // The onCreate prop is passed to the ApplicationForm component, which calls the handleCreateApplication function when the form is submitted.
   async function handleCreateApplication(
@@ -107,7 +116,7 @@ function App() {
     status: ApplicationStatus | "all"
   ) {
     setStatusFilter(status)
-    setActieveView("applications")
+    //setActiveView("applications")
   }
 
   // 6. UPDATE AN EXISTING APPLICATION
@@ -184,6 +193,7 @@ function App() {
         </header>
 
         <div className="app-content">
+
           {activeView === "add" && (
             <ApplicationForm
               onCreate={handleCreateApplication}
@@ -191,30 +201,40 @@ function App() {
           )}
 
           {activeView === "dashboard" && (
-            <Dashboard
-              applications={applications}
-              onStatusSelect={handleStatusSelect}
-            />
-          )}
-
-          {activeView === "applications" && (
             <>
+              <Dashboard
+                applications={applications}
+                onStatusSelect={handleStatusSelect}
+              />
+
               <ApplicationList
                 applications={filteredApplications}
                 selectedApplicationId={selectedApplicationId}
-                onSelect={setSelectedApplicationId}
-              />
-
-              <ApplicationDetails
-                application={selectedApplication}
+                onSelect={handleSelectApplication}
+                selectedApplication={selectedApplication}
                 onUpdate={handleUpdateApplication}
                 onDelete={handleDeleteApplication}
               />
             </>
           )}
+
+          {activeView === "applications" && (
+            <section className="applications-view">
+              <h2>Applications</h2>
+
+              <ApplicationList
+                applications={applications}
+                selectedApplicationId={selectedApplicationId}
+                onSelect={handleSelectApplication}
+                selectedApplication={selectedApplication}
+                onUpdate={handleUpdateApplication}
+                onDelete={handleDeleteApplication}
+              />
+            </section>
+          )}
         </div>
-      </main>
-    </div>
+      </main >
+    </div >
   )
 }
 
