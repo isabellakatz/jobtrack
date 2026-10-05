@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 
 import ApplicationForm from "./components/ApplicationForm"
 import ApplicationList from "./components/ApplicationList"
-import ApplicationDetails from "./components/ApplicationDetails"
 import Dashboard from "./components/Dashboard"
 import Sidebar from "./components/Sidebar"
 
@@ -47,6 +46,14 @@ function App() {
   const [statusFilter, setStatusFilter] =
     useState<ApplicationStatus | "all">("all")
 
+  // applicationStatusFilter = keeps track of the currently selected status filter for the application list
+  const [applicationStatusFilter, setApplicationStatusFilter] =
+    useState<ApplicationStatus | "all">("all")
+
+  // applicationSort = keeps track of the currently selected sort order for the application list
+  const [applicationSort, setApplicationSort] = useState<"newest" | "oldest" | "company-az" | "company-za">("newest")
+
+  // filteredApplications = filters the list of applications based on the selected status filter.
   const filteredApplications =
     statusFilter === "all"
       ? applications
@@ -54,6 +61,54 @@ function App() {
         (application) =>
           application.status === statusFilter
       )
+
+  // applicationsViewApplications = filters the list of applications based on the selected status filter for the application list view.
+  const applicationsViewApplications =
+    applicationStatusFilter === "all"
+      ? applications
+      : applications.filter(
+        (application) =>
+          application.status === applicationStatusFilter
+      )
+
+  // sortedApplications = sorts the application list based on the selected order.
+  const sortedApplications =
+  [...applicationsViewApplications].sort((a, b) => {
+    if (
+      applicationSort === "newest" ||
+      applicationSort === "oldest"
+    ) {
+      const dateA = a.applied_date
+        ? Date.parse(a.applied_date)
+        : Number.NaN
+
+      const dateB = b.applied_date
+        ? Date.parse(b.applied_date)
+        : Number.NaN
+
+      if (!Number.isFinite(dateA)) {
+        return Number.isFinite(dateB) ? 1 : 0
+      }
+
+      if (!Number.isFinite(dateB)) {
+        return -1
+      }
+
+      return applicationSort === "newest"
+        ? dateB - dateA
+        : dateA - dateB
+    }
+
+    if (applicationSort === "company-az") {
+      return a.company.localeCompare(b.company)
+    }
+
+    if (applicationSort === "company-za") {
+      return b.company.localeCompare(a.company)
+    }
+
+    return 0
+  })
 
   // 2. LOAD APPLICATIONS WHEN APP STARTS
   // The useEffect hook runs the code when the component loads for the first time. 
@@ -203,7 +258,7 @@ function App() {
           {activeView === "dashboard" && (
             <>
               <Dashboard
-                applications={applications}
+                applications={applicationsViewApplications}
                 onStatusSelect={handleStatusSelect}
               />
 
@@ -217,23 +272,79 @@ function App() {
               />
             </>
           )}
-
-          {activeView === "applications" && (
-            <section className="applications-view">
-              <h2>Applications</h2>
-
-              <ApplicationList
-                applications={applications}
-                selectedApplicationId={selectedApplicationId}
-                onSelect={handleSelectApplication}
-                selectedApplication={selectedApplication}
-                onUpdate={handleUpdateApplication}
-                onDelete={handleDeleteApplication}
-              />
-            </section>
-          )}
         </div>
-      </main >
+
+        {activeView === "applications" && (
+          <>
+            <div className="application-filters">
+              <label htmlFor="status-filter">
+                Status
+              </label>
+
+              <select
+                id="status-filter"
+                value={applicationStatusFilter}
+                onChange={(event) =>
+                  setApplicationStatusFilter(
+                    event.target.value as ApplicationStatus | "all"
+                  )
+                }
+              >
+                <option value="all">All</option>
+                <option value="saved">Saved</option>
+                <option value="applied">Applied</option>
+                <option value="screening">Screening</option>
+                <option value="interview">Interview</option>
+                <option value="offer">Offer</option>
+                <option value="rejected">Rejected</option>
+                <option value="withdrawn">Withdrawn</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="sort-order">
+                Sort by
+              </label>
+
+              <select
+                id="sort-order"
+                value={applicationSort}
+                onChange={(event) =>
+                  setApplicationSort(
+                    event.target.value as "newest" | "oldest" | "company-az" | "company-za"
+                  )
+                }
+              >
+                <option value="newest">
+                  Newest first
+                </option>
+
+                <option value="oldest">
+                  Oldest first
+                </option>
+
+                <option value="company-az">
+                  Company (A-Z)
+                </option>
+
+                <option value="company-za">
+                  Company (Z-A)
+                </option>
+
+              </select>
+            </div>
+
+            <ApplicationList
+              applications={sortedApplications}
+              selectedApplicationId={selectedApplicationId}
+              onSelect={handleSelectApplication}
+              selectedApplication={selectedApplication}
+              onUpdate={handleUpdateApplication}
+              onDelete={handleDeleteApplication}
+            />
+          </>
+        )}
+      </main>
     </div >
   )
 }
