@@ -4,6 +4,7 @@ import ApplicationForm from "./components/ApplicationForm"
 import ApplicationList from "./components/ApplicationList"
 import Dashboard from "./components/Dashboard"
 import Sidebar from "./components/Sidebar"
+import Calendar from "./components/Calender"
 
 import {
   createApplication,
@@ -26,7 +27,7 @@ function App() {
 
   // To keep track of the current view, we use a state variable called activeView. 
   // It can be one of four values: "add", "dashboard", "applications", or "kanban". The default value is "dashboard".
-  const [activeView, setActiveView] = useState<"add" | "dashboard" | "applications" | "cv" | "kanban" | "contacts">("dashboard")
+  const [activeView, setActiveView] = useState<"add" | "dashboard" | "todo" | "applications" | "calender" | "cv" | "kanban" | "contacts">("dashboard")
 
   //The App component is the main component of the application. It fetches job applications from the backend and displays them in a list.
   const [applications, setApplications] =
@@ -53,6 +54,23 @@ function App() {
   // applicationSort = keeps track of the currently selected sort order for the application list
   const [applicationSort, setApplicationSort] = useState<"newest" | "oldest" | "company-az" | "company-za">("newest")
 
+  // applicationSearch = keeps track of the current search query for filtering applications by company or role
+  const [applicationSearch, setApplicationSearch] = useState("")
+
+  //const [applicationSearchResults, setApplicationSearchResults] = useState<JobApplication[]>([])
+  const searchedApplications =
+    applicationSearch === ""
+      ? applications
+      : applications.filter(
+        (applicationsViewApplications) =>
+          applicationsViewApplications.company
+            .toLowerCase()
+            .includes(applicationSearch.toLowerCase()) ||
+          applicationsViewApplications.job_title
+            .toLowerCase()
+            .includes(applicationSearch.toLowerCase())
+      )
+
   // filteredApplications = filters the list of applications based on the selected status filter.
   const filteredApplications =
     statusFilter === "all"
@@ -73,6 +91,7 @@ function App() {
 
   // sortedApplications = sorts the application list based on the selected order.
   const sortedApplications =
+      // 1. CREATE A NEW ARRAY COPY. SORT APPLICATIONS BASED ON SELECTED ORDER
   [...applicationsViewApplications].sort((a, b) => {
     if (
       applicationSort === "newest" ||
@@ -80,7 +99,7 @@ function App() {
     ) {
       const dateA = a.applied_date
         ? Date.parse(a.applied_date)
-        : Number.NaN
+        : Number.NaN // If applied_date is null, set dateA to NaN - Not a number.
 
       const dateB = b.applied_date
         ? Date.parse(b.applied_date)
@@ -277,6 +296,21 @@ function App() {
         {activeView === "applications" && (
           <>
             <div className="application-filters">
+              <div>
+                <label htmlFor="application-search">
+                  Search
+                </label>
+                <input
+                  id="application-search"
+                  type="text"
+                  value={applicationSearch}
+                  onChange={(event) => 
+                    setApplicationSearch(event.target.value)
+                  }
+                  placeholder="Search company or role..."
+                />
+              </div>
+
               <label htmlFor="status-filter">
                 Status
               </label>
@@ -330,7 +364,6 @@ function App() {
                 <option value="company-za">
                   Company (Z-A)
                 </option>
-
               </select>
             </div>
 
@@ -343,6 +376,10 @@ function App() {
               onDelete={handleDeleteApplication}
             />
           </>
+        )}
+        
+        {activeView === "calender" && (
+          <Calendar />
         )}
       </main>
     </div >
