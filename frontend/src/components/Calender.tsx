@@ -18,6 +18,7 @@ function Calendar() {
     const [eventTitle, setEventTitle] = useState("")
     const [eventDate, setEventDate] = useState("")
     const [eventTime, setEventTime] = useState("")
+    const [eventNotes, setEventNotes] = useState("")
 
     //const handleAddEvent = () => {
 
@@ -60,14 +61,63 @@ function Calendar() {
                     <div className="event-modal">
                         <h3>Add event</h3>
 
-                        <p>Add event form here later...</p>
+                        <form className="event-form">
+                            <div className="event-form-field">
+                                <label htmlFor="event-title">
+                                    Title
+                                </label>
+                                <input
+                                    id="event-title"
+                                    type="text"
+                                    value={eventTitle}
+                                    onChange={(event) => setEventTitle(event.target.value)}
+                                />
+                            </div>
+                            <div className="event-form-field">
+                                <label htmlFor="event-date">
+                                    Date
+                                </label>
+                                <input
+                                    id="event-date"
+                                    type="date"
+                                    value={eventDate}
+                                    onChange={(event) => setEventDate(event.target.value)}
+                                />
+                            </div>
+                            <div className="event-form-field">
+                                <label htmlFor="event-time">
+                                    Time
+                                </label>
+                                <input
+                                    id="event-time"
+                                    type="time"
+                                    value={eventTime}
+                                    onChange={(event) => setEventTime(event.target.value)}
+                                />
+                            </div>
+                            <div className="event-form-field">
+                                <label htmlFor="event-notes">
+                                    Notes
+                                </label>
+                                <textarea
+                                    id="event-notes"
+                                    value={eventNotes}
+                                    onChange={(event) => setEventNotes(event.target.value)}
+                                />
+                            </div>
+                            <div className="event-form-actions">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsAddEventOpen(false)}
+                                >
+                                    Cancel
+                                </button>
 
-                        <button
-                            type="button"
-                            onClick={() => setIsAddEventOpen(false)}
-                        >
-                            Close
-                        </button>
+                                <button type="submit">
+                                    Save event
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

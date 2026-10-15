@@ -364,8 +364,6 @@ section h2 {
   background: #fecaca;
 }
 
-
-
 .dashboard-stats {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -419,7 +417,6 @@ section h2 {
 
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
-
 
 /* Calendar toolbar */
 
@@ -503,7 +500,6 @@ section h2 {
   transform: translateY(1px);
 }
 
-
 /* Add event button */
 
 .calendar-add-event-button {
@@ -539,4 +535,85 @@ section h2 {
   .calendar-toolbar > div:last-child {
     justify-self: center;
   }
+}
+
+/* Add event to calendar-form */
+.event-modal h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+
+  color: #191947;
+  font-size: 1.4rem;
+}
+
+.event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.event-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.event-form-field label {
+  font-weight: 600;
+  color: #191947;
+}
+
+.event-form-field input,
+.event-form-field textarea {
+  padding: 10px 12px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  font: inherit;
+}
+
+.event-form-field textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.event-form-field input:focus,
+.event-form-field textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.event-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  margin-top: 8px;
+}
+
+.event-form-actions button {
+  padding: 9px 16px;
+
+  border: none;
+  border-radius: 8px;
+
+  font: inherit;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.event-form-actions button:first-child {
+  background: #e5e7eb;
+  color: #191947;
+}
+
+.event-form-actions button:last-child {
+  background: #2563eb;
+  color: white;
+}
+
+.event-form-actions button:last-child:hover {
+  background: #1d4ed8;
 }
