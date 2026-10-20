@@ -1,7 +1,7 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 import sqlalchemy
-from sqlalchemy import Date, DateTime, String, Text, func
+from sqlalchemy import Date, DateTime, String, Text, Time, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -65,6 +65,31 @@ class JobApplication(Base):
     )
 
 # any updates done with the application
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+    
+    
+class CalendarEvent(Base):
+    __tablename__ = "calendar_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    event_date: Mapped[date] = mapped_column(Date, nullable=False)
+
+    start_time: Mapped[time | None] = mapped_column(Time, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+    )
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,

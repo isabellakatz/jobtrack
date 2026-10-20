@@ -189,3 +189,28 @@ def delete_application(
     db.commit()
     
     return None
+
+### CALENDAR ###
+
+@app.post(
+    "/events",
+    response_model=schemas.CalendarEventResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_event(
+    event_data: schemas.CalendarEventCreate,
+    db: Session = Depends(get_db),
+):
+    new_event = models.CalendarEvent(
+        title=event_data.title,
+        event_date=event_data.event_date,
+        start_time=event_data.start_time,
+        notes=event_data.notes,
+    )
+    
+    db.add(new_event)
+    db.commit()
+    db.refresh(new_event)
+    
+    return new_event
+    

@@ -1,7 +1,7 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from enum import Enum
 
-from pydantic import BaseModel, HttpUrl, EmailStr, ConfigDict, Field
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 
 # Data from when a user register
 class UserCreate(BaseModel):
@@ -63,5 +63,27 @@ class JobApplicationResponse(JobApplicationCreate):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    created_at: datetime
+    updated_at: datetime
+    
+
+class CalendarEventCreate(BaseModel):
+    id: int
+    title: str
+    event_date: date
+    start_time: time | None = None
+    notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+    
+
+class CalendarEventResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    title: str
+    event_date: date
+    start_time: time | None
+    notes: str | None
     created_at: datetime
     updated_at: datetime
