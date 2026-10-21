@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # is responsible for reading the configurations values from the .env-file
 class Settings(BaseSettings):
     database_url: str
+    jwt_secret_key: str
 
     model_config = SettingsConfigDict(
         env_file=".env",

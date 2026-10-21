@@ -13,8 +13,18 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True) 
     id: int
     email: EmailStr
+    
+# When an existing user is logging in
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+    
+# Sends back answer from the login-endpoint
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
 
-
+# Application schemas
 class ApplicationStatus(str, Enum):
     saved = "saved"
     applied = "applied"

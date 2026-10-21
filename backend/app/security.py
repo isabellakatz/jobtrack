@@ -1,7 +1,16 @@
 from pwdlib import PasswordHash
 
+from datetime import datetime, timedelta, timezone
+
+import jwt
+
+from app.config import settings
+
 # object used to hash and verify password
 password_hash = PasswordHash.recommended()
+
+# Constand value for access token, valid 30 min
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # function used when a user register
 def hash_password(password : str) -> str:
@@ -17,4 +26,21 @@ def verify_password(
     return password_hash.verify(
         plain_password,
         hashed_password
+    )
+
+# Function to create an access token, valid for 30 min
+def create_access_token(user_id: int) -> str:
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+
+    payload = {
+        "sub": str(user_id),
+        "exp": expires_at,
+    }
+
+    return jwt.encode(
+        payload,
+        settings.jwt_secret_key,
+        algorithm="HS256",
     )

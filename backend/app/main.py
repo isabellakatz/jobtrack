@@ -5,7 +5,11 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.database import get_db
-from app.security import hash_password
+from app.security import (
+    hash_password, 
+    verify_password,
+    create_access_token,
+)
 from app.models import JobApplication
 from app.schemas import (
     JobApplicationCreate, 
@@ -31,7 +35,7 @@ app.add_middleware(
 def root():
     return {"message": "Oh yeah, JobTrack API is running!"}
 
-# (POST) Register new user
+# (POST) Endpoint for Register new user
 @app.post(
     "/auth/register",
     response_model=schemas.UserResponse,
@@ -66,6 +70,45 @@ def register_user(
     db.refresh(new_user)
         
     return new_user
+
+### (POST) Endpoint for Login ###
+@app.post(
+    "/auth/login",
+    response_model=schemas.TokenResponse,
+)
+def login_user(
+    login_data: schemas.UserLogin,
+    db: Session = Depends(get_db),
+):
+    user = (
+        db.query(models.User)
+        .filter(models.User.email == login_data.email)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+
+    password_is_valid = verify_password(
+        login_data.password,
+        user.hashed_password,
+    )
+
+    if not password_is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+
+    access_token = create_access_token(user.id)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+    }
 
 # POST application endpoint
 @app.post(
@@ -215,5 +258,5 @@ def create_event(
     
     return new_event
     
-# Delete event from calendar
-# Update/change event in calendar
+# Delete event from calendar - will be implemented
+# Update/change event in calendar - will be implemented
