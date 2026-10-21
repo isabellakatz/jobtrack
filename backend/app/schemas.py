@@ -66,17 +66,15 @@ class JobApplicationResponse(JobApplicationCreate):
     created_at: datetime
     updated_at: datetime
     
-
+# Sends title, event date, start time (or none) and notes (or none) to the frontend
 class CalendarEventCreate(BaseModel):
-    id: int
     title: str
     event_date: date
     start_time: time | None = None
     notes: str | None = None
-    created_at: datetime
-    updated_at: datetime
     
 
+# Backend sends back and saves id + created at and updated at
 class CalendarEventResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     

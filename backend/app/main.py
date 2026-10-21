@@ -192,6 +192,7 @@ def delete_application(
 
 ### CALENDAR ###
 
+# Create a new event in calendar #
 @app.post(
     "/events",
     response_model=schemas.CalendarEventResponse,
@@ -214,3 +215,5 @@ def create_event(
     
     return new_event
     
+# Delete event from calendar
+# Update/change event in calendar
