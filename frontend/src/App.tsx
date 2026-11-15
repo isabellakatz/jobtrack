@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 
+import LoginForm from "./components/LoginForm"
 import ApplicationForm from "./components/ApplicationForm"
 import ApplicationList from "./components/ApplicationList"
 import Dashboard from "./components/Dashboard"
@@ -24,6 +25,14 @@ import "./App.css"
 
 
 function App() {
+
+  // Authentication state
+  const [accessToken, setAccessToken] = useState<string | null>(null)
+
+  // Function that LoginForm expercts through its onLogin-prop
+  function handleLogin(token: string) {
+    setAccessToken(token)
+  }
 
   // To keep track of the current view, we use a state variable called activeView. 
   // It can be one of four values: "add", "dashboard", "applications", or "kanban". The default value is "dashboard".
@@ -91,43 +100,43 @@ function App() {
 
   // sortedApplications = sorts the application list based on the selected order.
   const sortedApplications =
-      // 1. CREATE A NEW ARRAY COPY. SORT APPLICATIONS BASED ON SELECTED ORDER
-  [...applicationsViewApplications].sort((a, b) => {
-    if (
-      applicationSort === "newest" ||
-      applicationSort === "oldest"
-    ) {
-      const dateA = a.applied_date
-        ? Date.parse(a.applied_date)
-        : Number.NaN // If applied_date is null, set dateA to NaN - Not a number.
+    // 1. CREATE A NEW ARRAY COPY. SORT APPLICATIONS BASED ON SELECTED ORDER
+    [...applicationsViewApplications].sort((a, b) => {
+      if (
+        applicationSort === "newest" ||
+        applicationSort === "oldest"
+      ) {
+        const dateA = a.applied_date
+          ? Date.parse(a.applied_date)
+          : Number.NaN // If applied_date is null, set dateA to NaN - Not a number.
 
-      const dateB = b.applied_date
-        ? Date.parse(b.applied_date)
-        : Number.NaN
+        const dateB = b.applied_date
+          ? Date.parse(b.applied_date)
+          : Number.NaN
 
-      if (!Number.isFinite(dateA)) {
-        return Number.isFinite(dateB) ? 1 : 0
+        if (!Number.isFinite(dateA)) {
+          return Number.isFinite(dateB) ? 1 : 0
+        }
+
+        if (!Number.isFinite(dateB)) {
+          return -1
+        }
+
+        return applicationSort === "newest"
+          ? dateB - dateA
+          : dateA - dateB
       }
 
-      if (!Number.isFinite(dateB)) {
-        return -1
+      if (applicationSort === "company-az") {
+        return a.company.localeCompare(b.company)
       }
 
-      return applicationSort === "newest"
-        ? dateB - dateA
-        : dateA - dateB
-    }
+      if (applicationSort === "company-za") {
+        return b.company.localeCompare(a.company)
+      }
 
-    if (applicationSort === "company-az") {
-      return a.company.localeCompare(b.company)
-    }
-
-    if (applicationSort === "company-za") {
-      return b.company.localeCompare(a.company)
-    }
-
-    return 0
-  })
+      return 0
+    })
 
   // 2. LOAD APPLICATIONS WHEN APP STARTS
   // The useEffect hook runs the code when the component loads for the first time. 
@@ -254,7 +263,14 @@ function App() {
     return <p>{error}</p>
   }
 
+  if (!accessToken) {
+    return (
+      <LoginForm onLogin={handleLogin} />
+    )
+  }
+
   return (
+
     <div className="app-layout">
       <Sidebar
         onNavigate={setActiveView}
@@ -304,7 +320,7 @@ function App() {
                   id="application-search"
                   type="text"
                   value={applicationSearch}
-                  onChange={(event) => 
+                  onChange={(event) =>
                     setApplicationSearch(event.target.value)
                   }
                   placeholder="Search company or role..."
@@ -377,7 +393,7 @@ function App() {
             />
           </>
         )}
-        
+
         {activeView === "calender" && (
           <Calendar />
         )}
