@@ -36,7 +36,7 @@ function App() {
 
   // To keep track of the current view, we use a state variable called activeView. 
   // It can be one of four values: "add", "dashboard", "applications", or "kanban". The default value is "dashboard".
-  const [activeView, setActiveView] = useState<"add" | "dashboard" | "todo" | "applications" | "calender" | "cv" | "kanban" | "contacts">("dashboard")
+  const [activeView, setActiveView] = useState<"add" | "dashboard" | "todo" | "applications" | "calendar" | "cv" | "kanban" | "contacts">("dashboard")
 
   //The App component is the main component of the application. It fetches job applications from the backend and displays them in a list.
   const [applications, setApplications] =
@@ -228,6 +228,36 @@ function App() {
     }
   }
 
+  // 7. NAVIGATE BETWEEN VIEWS
+  function handleNavigate(
+  view:
+    | "add"
+    | "dashboard"
+    | "todo"
+    | "applications"
+    | "calendar"
+    | "cv"
+    | "kanban"
+    | "contacts"
+) {
+  // Close any currently opened application
+  setSelectedApplicationId(null)
+
+  // Reset Dashboard filter when opening Dashboard
+  if (view === "dashboard") {
+    setStatusFilter("all")
+  }
+
+  // Reset Applications filters when opening Applications
+  if (view === "applications") {
+    setApplicationStatusFilter("all")
+    setApplicationSearch("")
+    setApplicationSort("newest")
+  }
+
+  setActiveView(view)
+}
+
   // 8. DELETE AN APPLICATION
   async function handleDeleteApplication(
     application: JobApplication
@@ -269,53 +299,63 @@ function App() {
     )
   }
 
-  return (
+return (
+  <div className="app-layout">
+    <Sidebar
+      onNavigate={handleNavigate}
+    />
 
-    <div className="app-layout">
-      <Sidebar
-        onNavigate={setActiveView}
-      />
+    <main className="app">
 
-      <main className="app">
-        <header className="app-header">
-          <h1>JobTrack</h1>
-          <p>Track your job applications in one place.</p>
-        </header>
+      <header className="app-header">
+        <h1>JobTrack</h1>
+        <p>Track your job applications in one place.</p>
+      </header>
 
-        <div className="app-content">
 
-          {activeView === "add" && (
-            <ApplicationForm
-              onCreate={handleCreateApplication}
-            />
-          )}
+      <div className="app-content">
 
-          {activeView === "dashboard" && (
-            <>
+        {/* ADD APPLICATION */}
+        {activeView === "add" && (
+          <ApplicationForm
+            onCreate={handleCreateApplication}
+          />
+        )}
+
+
+        {/* DASHBOARD */}
+        {activeView === "dashboard" && (
+          <>
+            <section className="dashboard-section">
               <Dashboard
-                applications={applicationsViewApplications}
+                applications={applications}
                 onStatusSelect={handleStatusSelect}
               />
+            </section>
 
-              <ApplicationList
-                applications={filteredApplications}
-                selectedApplicationId={selectedApplicationId}
-                onSelect={handleSelectApplication}
-                selectedApplication={selectedApplication}
-                onUpdate={handleUpdateApplication}
-                onDelete={handleDeleteApplication}
-              />
-            </>
-          )}
-        </div>
+            <ApplicationList
+              applications={filteredApplications}
+              selectedApplicationId={selectedApplicationId}
+              onSelect={handleSelectApplication}
+              selectedApplication={selectedApplication}
+              onUpdate={handleUpdateApplication}
+              onDelete={handleDeleteApplication}
+            />
+          </>
+        )}
 
+
+        {/* APPLICATIONS */}
         {activeView === "applications" && (
           <>
             <div className="application-filters">
-              <div>
+
+              {/* Search */}
+              <div className="filter-field filter-search">
                 <label htmlFor="application-search">
                   Search
                 </label>
+
                 <input
                   id="application-search"
                   type="text"
@@ -327,61 +367,75 @@ function App() {
                 />
               </div>
 
-              <label htmlFor="status-filter">
-                Status
-              </label>
 
-              <select
-                id="status-filter"
-                value={applicationStatusFilter}
-                onChange={(event) =>
-                  setApplicationStatusFilter(
-                    event.target.value as ApplicationStatus | "all"
-                  )
-                }
-              >
-                <option value="all">All</option>
-                <option value="saved">Saved</option>
-                <option value="applied">Applied</option>
-                <option value="screening">Screening</option>
-                <option value="interview">Interview</option>
-                <option value="offer">Offer</option>
-                <option value="rejected">Rejected</option>
-                <option value="withdrawn">Withdrawn</option>
-              </select>
+              {/* Status */}
+              <div className="filter-field">
+                <label htmlFor="status-filter">
+                  Status
+                </label>
+
+                <select
+                  id="status-filter"
+                  value={applicationStatusFilter}
+                  onChange={(event) =>
+                    setApplicationStatusFilter(
+                      event.target.value as
+                        | ApplicationStatus
+                        | "all"
+                    )
+                  }
+                >
+                  <option value="all">All</option>
+                  <option value="saved">Saved</option>
+                  <option value="applied">Applied</option>
+                  <option value="screening">Screening</option>
+                  <option value="interview">Interview</option>
+                  <option value="offer">Offer</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="withdrawn">Withdrawn</option>
+                </select>
+              </div>
+
+
+              {/* Sort by */}
+              <div className="filter-field">
+                <label htmlFor="sort-filter">
+                  Sort by
+                </label>
+
+                <select
+                  id="sort-filter"
+                  value={applicationSort}
+                  onChange={(event) =>
+                    setApplicationSort(
+                      event.target.value as
+                        | "newest"
+                        | "oldest"
+                        | "company-az"
+                        | "company-za"
+                    )
+                  }
+                >
+                  <option value="newest">
+                    Newest first
+                  </option>
+
+                  <option value="oldest">
+                    Oldest first
+                  </option>
+
+                  <option value="company-az">
+                    Company A-Z
+                  </option>
+
+                  <option value="company-za">
+                    Company Z-A
+                  </option>
+                </select>
+              </div>
+
             </div>
 
-            <div>
-              <label htmlFor="sort-order">
-                Sort by
-              </label>
-
-              <select
-                id="sort-order"
-                value={applicationSort}
-                onChange={(event) =>
-                  setApplicationSort(
-                    event.target.value as "newest" | "oldest" | "company-az" | "company-za"
-                  )
-                }
-              >
-                <option value="newest">
-                  Newest first
-                </option>
-
-                <option value="oldest">
-                  Oldest first
-                </option>
-
-                <option value="company-az">
-                  Company (A-Z)
-                </option>
-
-                <option value="company-za">
-                  Company (Z-A)
-                </option>
-              </select>
-            </div>
 
             <ApplicationList
               applications={sortedApplications}
@@ -394,12 +448,17 @@ function App() {
           </>
         )}
 
-        {activeView === "calender" && (
+
+        {/* CALENDAR */}
+        {activeView === "calendar" && (
           <Calendar />
         )}
-      </main>
-    </div >
-  )
+
+      </div>
+
+    </main>
+  </div>
+)
 }
 
 export default App

@@ -1,6 +1,6 @@
 interface SidebarProps {
   onNavigate: (
-    view: "add" | "dashboard" | "todo" | "applications" | "calender" | "cv" | "kanban" | "contacts"
+    view: "add" | "dashboard" | "todo" | "applications" | "calendar" | "cv" | "kanban" | "contacts"
     ) => void
 }
 
@@ -30,6 +30,7 @@ function Sidebar({
                     Dashboard
                 </button>
 
+                {/*
                 <button 
                     type="button"
                     className="sidebar-nav-button"
@@ -37,6 +38,7 @@ function Sidebar({
                 >
                     TO-DO LIST (Action items)
                 </button>
+                */}
 
                 <button 
                     type="button"
@@ -49,11 +51,12 @@ function Sidebar({
                 <button 
                     type="button"
                     className="sidebar-nav-button"
-                    onClick={() => onNavigate("calender")}
+                    onClick={() => onNavigate("calendar")}
                 >
                     Calender
                 </button>
 
+                {/*
                 <button 
                     type="button"
                     className="sidebar-nav-button"
@@ -76,7 +79,8 @@ function Sidebar({
                     onClick={() => onNavigate("contacts")}
                 >
                     Contacts
-                </button>            
+                </button> 
+                */}           
                 
             </nav>
 
