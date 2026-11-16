@@ -32,9 +32,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Root endpoint to check if the API is running
 @app.get("/")
 def root():
     return {"message": "Oh yeah, JobTrack API is running!"}
+
+# Root endpoint for the current user to get their personal information
+@app.get(
+    "/auth/me",
+    response_model=schemas.UserResponse,
+)
+def get_current_user_info(
+    current_user: models.User = Depends(get_current_user),
+):
+    return current_user
+
 
 # (POST) Endpoint for Register new user
 @app.post(

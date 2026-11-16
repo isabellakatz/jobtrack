@@ -8,6 +8,11 @@ import Dashboard from "./components/Dashboard"
 import Sidebar from "./components/Sidebar"
 import Calendar from "./components/Calender"
 
+import UserMenu from "./components/UserMenu"
+import { getCurrentUser } from "./services/authApi"
+
+import type { User } from "./types/auth"
+
 import {
   createApplication,
   deleteApplication,
@@ -29,6 +34,9 @@ function App() {
 
   // Authentication state
   const [accessToken, setAccessToken] = useState<string | null>(null)
+
+  // Current user state
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
 
   // Function that LoginForm expercts through its onLogin-prop
   function handleLogin(token: string) {
@@ -154,22 +162,45 @@ function App() {
     }
 
     async function loadApplications() {
-    try {
-      setLoading(true)
-      setError(null)
+      try {
+        setLoading(true)
+        setError(null)
 
-      const data = await getApplications(accessToken)
+        const data = await getApplications(accessToken)
 
-      setApplications(data)
-    } catch {
-      setError("Could not load applications.")
-    } finally {
-      setLoading(false)
+        setApplications(data)
+      } catch {
+        setError("Could not load applications.")
+      } finally {
+        setLoading(false)
+      }
     }
-  }
 
-  loadApplications()
-}, [accessToken])
+    loadApplications()
+  }, [accessToken])
+
+  // Load information about the logged-in user
+  useEffect(() => {
+    if (!accessToken) {
+      setCurrentUser(null)
+      return
+    }
+
+    const token = accessToken
+
+    async function loadCurrentUser() {
+      try {
+        const user = await getCurrentUser(token)
+
+        setCurrentUser(user)
+      } catch (error) {
+        console.error("Could not load user:", error)
+      }
+    }
+
+    loadCurrentUser()
+
+  }, [accessToken])
 
   // 3. FIND CURRENTLY SELECTED APPLICATION
   const selectedApplication =
@@ -190,31 +221,31 @@ function App() {
   // 5. CREATE A NEW APPLICATION - Is handled by the ApplicationForm component, which is a child of the App component. 
   // The onCreate prop is passed to the ApplicationForm component, which calls the handleCreateApplication function when the form is submitted.
   async function handleCreateApplication(
-  applicationData: JobApplicationCreate
-) {
-  if (!accessToken) {
-    return
+    applicationData: JobApplicationCreate
+  ) {
+    if (!accessToken) {
+      return
+    }
+
+    try {
+      setError(null)
+
+      const newApplication = await createApplication(
+        applicationData,
+        accessToken
+      )
+
+      setApplications((currentApplications) => [
+        newApplication,
+        ...currentApplications,
+      ])
+
+      setSelectedApplicationId(newApplication.id)
+
+    } catch {
+      setError("Could not create application.")
+    }
   }
-
-  try {
-    setError(null)
-
-    const newApplication = await createApplication(
-      applicationData,
-      accessToken
-    )
-
-    setApplications((currentApplications) => [
-      newApplication,
-      ...currentApplications,
-    ])
-
-    setSelectedApplicationId(newApplication.id)
-
-  } catch {
-    setError("Could not create application.")
-  }
-}
 
   function handleStatusSelect(
     status: ApplicationStatus | "all"
@@ -243,7 +274,7 @@ function App() {
           updates,
           accessToken
         )
-        
+
 
       // .map() = Iterate over the current list of applications and replace the updated application with the new data.
       setApplications((currentApplications) =>
@@ -288,11 +319,21 @@ function App() {
     setActiveView(view)
   }
 
+  // LOGOUT
+  function handleLogout() {
+    setAccessToken(null)
+    setCurrentUser(null)
+    setApplications([])
+    setSelectedApplicationId(null)
+    setError(null)
+    setActiveView("dashboard")
+  }
+
   // 8. DELETE AN APPLICATION
   async function handleDeleteApplication(
     application: JobApplication
   ) {
-        if (!accessToken) {
+    if (!accessToken) {
       return
     }
 
@@ -321,7 +362,7 @@ function App() {
   //9. EARLY RETURNS
   // Still waiting for the applications to load, show a loading message. 
   // If there was an error, show the error message. Otherwise, display the list of applications.
-  
+
   if (!accessToken) {
     if (authView === "register") {
       return (
@@ -342,14 +383,14 @@ function App() {
       />
     )
   }
-  
+
   if (loading) {
     return <p>Loading applications...</p>
   }
 
   if (error) {
     return <p>{error}</p>
-  }   
+  }
 
   return (
     <div className="app-layout">
@@ -358,6 +399,13 @@ function App() {
       />
 
       <main className="app">
+
+        {currentUser && (
+          <UserMenu
+            user={currentUser}
+            onLogout={handleLogout}
+          />
+        )}
 
         <header className="app-header">
           <h1>JobTrack</h1>

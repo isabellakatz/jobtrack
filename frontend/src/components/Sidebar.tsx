@@ -83,16 +83,6 @@ function Sidebar({
                 */}           
                 
             </nav>
-
-            <div className="sidebar-bottom">
-                <button type="button">
-                    Settings
-                </button>
-            </div>
-            
-            <button type="button">
-                Log out
-            </button>
         </aside>
     )
 }
