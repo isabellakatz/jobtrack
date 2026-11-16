@@ -146,21 +146,30 @@ function App() {
   // The useEffect hook runs the code when the component loads for the first time. 
   // It fetches the job applications from the backend and sets the state accordingly.
   useEffect(() => {
-    async function loadApplications() {
-      try {
-        // getApplications() = Fetch applications from the backend
-        const data = await getApplications()
-        setApplications(data)
-      } catch {
-        // If there was an error fetching the applications, set the error state to display an error message.
-        setError("Could not load applications.")
-      } finally {
-        setLoading(false)
-      }
+    // Do not load applications before the user is logged in
+    if (!accessToken) {
+      setApplications([])
+      setLoading(false)
+      return
     }
 
-    loadApplications()
-  }, [])
+    async function loadApplications() {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const data = await getApplications(accessToken)
+
+      setApplications(data)
+    } catch {
+      setError("Could not load applications.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  loadApplications()
+}, [accessToken])
 
   // 3. FIND CURRENTLY SELECTED APPLICATION
   const selectedApplication =
@@ -181,23 +190,31 @@ function App() {
   // 5. CREATE A NEW APPLICATION - Is handled by the ApplicationForm component, which is a child of the App component. 
   // The onCreate prop is passed to the ApplicationForm component, which calls the handleCreateApplication function when the form is submitted.
   async function handleCreateApplication(
-    applicationData: JobApplicationCreate
-  ) {
-    try {
-      setError(null)
-
-      const newApplication = await createApplication(applicationData)
-
-      setApplications((currentApplications) => [
-        newApplication,
-        ...currentApplications,
-      ])
-
-      setSelectedApplicationId(newApplication.id)
-    } catch {
-      setError("Could not create application.")
-    }
+  applicationData: JobApplicationCreate
+) {
+  if (!accessToken) {
+    return
   }
+
+  try {
+    setError(null)
+
+    const newApplication = await createApplication(
+      applicationData,
+      accessToken
+    )
+
+    setApplications((currentApplications) => [
+      newApplication,
+      ...currentApplications,
+    ])
+
+    setSelectedApplicationId(newApplication.id)
+
+  } catch {
+    setError("Could not create application.")
+  }
+}
 
   function handleStatusSelect(
     status: ApplicationStatus | "all"
@@ -211,13 +228,22 @@ function App() {
     applicationId: number,
     updates: JobApplicationUpdate
   ) {
+    if (!accessToken) {
+      return
+    }
+
     try {
       setError(null)
 
       // updateApplication() = Send a PATCH request to the backend to update the selected job application 
       // with the new status and notes.
       const updatedApplication =
-        await updateApplication(applicationId, updates)
+        await updateApplication(
+          applicationId,
+          updates,
+          accessToken
+        )
+        
 
       // .map() = Iterate over the current list of applications and replace the updated application with the new data.
       setApplications((currentApplications) =>
@@ -234,43 +260,50 @@ function App() {
 
   // 7. NAVIGATE BETWEEN VIEWS
   function handleNavigate(
-  view:
-    | "add"
-    | "dashboard"
-    | "todo"
-    | "applications"
-    | "calendar"
-    | "cv"
-    | "kanban"
-    | "contacts"
-) {
-  // Close any currently opened application
-  setSelectedApplicationId(null)
+    view:
+      | "add"
+      | "dashboard"
+      | "todo"
+      | "applications"
+      | "calendar"
+      | "cv"
+      | "kanban"
+      | "contacts"
+  ) {
+    // Close any currently opened application
+    setSelectedApplicationId(null)
 
-  // Reset Dashboard filter when opening Dashboard
-  if (view === "dashboard") {
-    setStatusFilter("all")
+    // Reset Dashboard filter when opening Dashboard
+    if (view === "dashboard") {
+      setStatusFilter("all")
+    }
+
+    // Reset Applications filters when opening Applications
+    if (view === "applications") {
+      setApplicationStatusFilter("all")
+      setApplicationSearch("")
+      setApplicationSort("newest")
+    }
+
+    setActiveView(view)
   }
-
-  // Reset Applications filters when opening Applications
-  if (view === "applications") {
-    setApplicationStatusFilter("all")
-    setApplicationSearch("")
-    setApplicationSort("newest")
-  }
-
-  setActiveView(view)
-}
 
   // 8. DELETE AN APPLICATION
   async function handleDeleteApplication(
     application: JobApplication
   ) {
+        if (!accessToken) {
+      return
+    }
+
     try {
       setError(null)
 
       // Sends DELETE-request to the backend (FastAPI) to delete the selected job application.
-      await deleteApplication(application.id)
+      await deleteApplication(
+        application.id,
+        accessToken
+      )
 
       // Update the React state to remove the deleted application from the list and clear the selected application.
       setApplications((currentApplications) =>
@@ -288,196 +321,196 @@ function App() {
   //9. EARLY RETURNS
   // Still waiting for the applications to load, show a loading message. 
   // If there was an error, show the error message. Otherwise, display the list of applications.
-  if (loading) {
-    return <p>Loading applications...</p>
-  }
+  
+  if (!accessToken) {
+    if (authView === "register") {
+      return (
+        <RegisterForm
+          onShowLogin={() =>
+            setAuthView("login")
+          }
+        />
+      )
+    }
 
-
-  if (error) {
-    return <p>{error}</p>
-  }
-
-if (!accessToken) {
-  if (authView === "register") {
     return (
-      <RegisterForm
-        onShowLogin={() =>
-          setAuthView("login")
+      <LoginForm
+        onLogin={handleLogin}
+        onShowRegister={() =>
+          setAuthView("register")
         }
       />
     )
   }
+  
+  if (loading) {
+    return <p>Loading applications...</p>
+  }
+
+  if (error) {
+    return <p>{error}</p>
+  }   
 
   return (
-    <LoginForm
-      onLogin={handleLogin}
-      onShowRegister={() =>
-        setAuthView("register")
-      }
-    />
-  )
-}
+    <div className="app-layout">
+      <Sidebar
+        onNavigate={handleNavigate}
+      />
 
-return (
-  <div className="app-layout">
-    <Sidebar
-      onNavigate={handleNavigate}
-    />
+      <main className="app">
 
-    <main className="app">
-
-      <header className="app-header">
-        <h1>JobTrack</h1>
-        <p>Track your job applications in one place.</p>
-      </header>
+        <header className="app-header">
+          <h1>JobTrack</h1>
+          <p>Track your job applications in one place.</p>
+        </header>
 
 
-      <div className="app-content">
+        <div className="app-content">
 
-        {/* ADD APPLICATION */}
-        {activeView === "add" && (
-          <ApplicationForm
-            onCreate={handleCreateApplication}
-          />
-        )}
-
-
-        {/* DASHBOARD */}
-        {activeView === "dashboard" && (
-          <>
-            <section className="dashboard-section">
-              <Dashboard
-                applications={applications}
-                onStatusSelect={handleStatusSelect}
-              />
-            </section>
-
-            <ApplicationList
-              applications={filteredApplications}
-              selectedApplicationId={selectedApplicationId}
-              onSelect={handleSelectApplication}
-              selectedApplication={selectedApplication}
-              onUpdate={handleUpdateApplication}
-              onDelete={handleDeleteApplication}
+          {/* ADD APPLICATION */}
+          {activeView === "add" && (
+            <ApplicationForm
+              onCreate={handleCreateApplication}
             />
-          </>
-        )}
+          )}
 
 
-        {/* APPLICATIONS */}
-        {activeView === "applications" && (
-          <>
-            <div className="application-filters">
-
-              {/* Search */}
-              <div className="filter-field filter-search">
-                <label htmlFor="application-search">
-                  Search
-                </label>
-
-                <input
-                  id="application-search"
-                  type="text"
-                  value={applicationSearch}
-                  onChange={(event) =>
-                    setApplicationSearch(event.target.value)
-                  }
-                  placeholder="Search company or role..."
+          {/* DASHBOARD */}
+          {activeView === "dashboard" && (
+            <>
+              <section className="dashboard-section">
+                <Dashboard
+                  applications={applications}
+                  onStatusSelect={handleStatusSelect}
                 />
-              </div>
+              </section>
+
+              <ApplicationList
+                applications={filteredApplications}
+                selectedApplicationId={selectedApplicationId}
+                onSelect={handleSelectApplication}
+                selectedApplication={selectedApplication}
+                onUpdate={handleUpdateApplication}
+                onDelete={handleDeleteApplication}
+              />
+            </>
+          )}
 
 
-              {/* Status */}
-              <div className="filter-field">
-                <label htmlFor="status-filter">
-                  Status
-                </label>
+          {/* APPLICATIONS */}
+          {activeView === "applications" && (
+            <>
+              <div className="application-filters">
 
-                <select
-                  id="status-filter"
-                  value={applicationStatusFilter}
-                  onChange={(event) =>
-                    setApplicationStatusFilter(
-                      event.target.value as
+                {/* Search */}
+                <div className="filter-field filter-search">
+                  <label htmlFor="application-search">
+                    Search
+                  </label>
+
+                  <input
+                    id="application-search"
+                    type="text"
+                    value={applicationSearch}
+                    onChange={(event) =>
+                      setApplicationSearch(event.target.value)
+                    }
+                    placeholder="Search company or role..."
+                  />
+                </div>
+
+
+                {/* Status */}
+                <div className="filter-field">
+                  <label htmlFor="status-filter">
+                    Status
+                  </label>
+
+                  <select
+                    id="status-filter"
+                    value={applicationStatusFilter}
+                    onChange={(event) =>
+                      setApplicationStatusFilter(
+                        event.target.value as
                         | ApplicationStatus
                         | "all"
-                    )
-                  }
-                >
-                  <option value="all">All</option>
-                  <option value="saved">Saved</option>
-                  <option value="applied">Applied</option>
-                  <option value="screening">Screening</option>
-                  <option value="interview">Interview</option>
-                  <option value="offer">Offer</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="withdrawn">Withdrawn</option>
-                </select>
-              </div>
+                      )
+                    }
+                  >
+                    <option value="all">All</option>
+                    <option value="saved">Saved</option>
+                    <option value="applied">Applied</option>
+                    <option value="screening">Screening</option>
+                    <option value="interview">Interview</option>
+                    <option value="offer">Offer</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="withdrawn">Withdrawn</option>
+                  </select>
+                </div>
 
 
-              {/* Sort by */}
-              <div className="filter-field">
-                <label htmlFor="sort-filter">
-                  Sort by
-                </label>
+                {/* Sort by */}
+                <div className="filter-field">
+                  <label htmlFor="sort-filter">
+                    Sort by
+                  </label>
 
-                <select
-                  id="sort-filter"
-                  value={applicationSort}
-                  onChange={(event) =>
-                    setApplicationSort(
-                      event.target.value as
+                  <select
+                    id="sort-filter"
+                    value={applicationSort}
+                    onChange={(event) =>
+                      setApplicationSort(
+                        event.target.value as
                         | "newest"
                         | "oldest"
                         | "company-az"
                         | "company-za"
-                    )
-                  }
-                >
-                  <option value="newest">
-                    Newest first
-                  </option>
+                      )
+                    }
+                  >
+                    <option value="newest">
+                      Newest first
+                    </option>
 
-                  <option value="oldest">
-                    Oldest first
-                  </option>
+                    <option value="oldest">
+                      Oldest first
+                    </option>
 
-                  <option value="company-az">
-                    Company A-Z
-                  </option>
+                    <option value="company-az">
+                      Company A-Z
+                    </option>
 
-                  <option value="company-za">
-                    Company Z-A
-                  </option>
-                </select>
+                    <option value="company-za">
+                      Company Z-A
+                    </option>
+                  </select>
+                </div>
+
               </div>
 
-            </div>
+
+              <ApplicationList
+                applications={sortedApplications}
+                selectedApplicationId={selectedApplicationId}
+                onSelect={handleSelectApplication}
+                selectedApplication={selectedApplication}
+                onUpdate={handleUpdateApplication}
+                onDelete={handleDeleteApplication}
+              />
+            </>
+          )}
 
 
-            <ApplicationList
-              applications={sortedApplications}
-              selectedApplicationId={selectedApplicationId}
-              onSelect={handleSelectApplication}
-              selectedApplication={selectedApplication}
-              onUpdate={handleUpdateApplication}
-              onDelete={handleDeleteApplication}
-            />
-          </>
-        )}
+          {/* CALENDAR */}
+          {activeView === "calendar" && (
+            <Calendar />
+          )}
 
+        </div>
 
-        {/* CALENDAR */}
-        {activeView === "calendar" && (
-          <Calendar />
-        )}
-
-      </div>
-
-    </main>
-  </div>
-)
+      </main>
+    </div>
+  )
 }
 
 export default App

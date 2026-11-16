@@ -1,31 +1,48 @@
 import type {
-JobApplication,
-JobApplicationCreate,
-JobApplicationUpdate
+  JobApplication,
+  JobApplicationCreate,
+  JobApplicationUpdate
 } from "../types/application"
 
 const API_URL = "http://127.0.0.1:8000"
 
-export async function getApplications(): Promise<JobApplication[]> {
-  const response = await fetch(`${API_URL}/applications`)
+export async function getApplications(
+  accessToken: string
+): Promise<JobApplication[]> {
+
+  const response = await fetch(
+    `${API_URL}/applications`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  )
 
   if (!response.ok) {
-    throw new Error("Failed to fetch applications")
+    const errorText = await response.text()
+
+    throw new Error(
+      `Failed to fetch applications: ${response.status} ${errorText}`
+    )
   }
 
   return response.json()
 }
 
 export async function createApplication(
-  application: JobApplicationCreate
+  application: JobApplicationCreate,
+  accessToken: string
 ): Promise<JobApplication> {
-    // fetch() = uses GET method by default to retrieve data from the backend.
+
   const response = await fetch(`${API_URL}/applications`, {
     method: "POST",
+
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
     },
-    // converts the JavaScript object application into a JSON string to be sent in the HTTP-request body to the backend.
+
     body: JSON.stringify(application),
   })
 
@@ -39,15 +56,20 @@ export async function createApplication(
 // React sends a PATCH request to the backend to update an existing job application with the specified applicationId and updates.
 export async function updateApplication(
   applicationId: number,
-  updates: JobApplicationUpdate
+  updates: JobApplicationUpdate,
+  accessToken: string
 ): Promise<JobApplication> {
+
   const response = await fetch(
     `${API_URL}/applications/${applicationId}`,
     {
       method: "PATCH",
+
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
       },
+
       body: JSON.stringify(updates),
     }
   )
@@ -61,16 +83,20 @@ export async function updateApplication(
 
 // Delete a job application with the specified applicationId.
 export async function deleteApplication(
-  applicationId: number
+  applicationId: number,
+  accessToken: string
 ): Promise<void> {
-    const response = await fetch(
-        `${API_URL}/applications/${applicationId}`,
-        {
-            method: "DELETE",
-        }
-    )
-
-    if (!response.ok) {
-        throw new Error("Failed to delete application")
+  const response = await fetch(
+    `${API_URL}/applications/${applicationId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     }
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to delete application")
+  }
 }

@@ -9,6 +9,7 @@ from app.security import (
     hash_password, 
     verify_password,
     create_access_token,
+    get_current_user,
 )
 from app.models import JobApplication
 from app.schemas import (
@@ -122,55 +123,72 @@ def login_user(
 def create_application(
     application: JobApplicationCreate,
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
-    # mode_dump() = convert pydantic model into a standard Python dictionary
+    # Convert Pydantic model into a Python dictionary
     application_data = application.model_dump()
 
     application_data["status"] = application.status.value
 
-    # Pack up the data into a JobApplication model instance, which is compatible with SQLAlchemy
+    # Connect the application to the logged-in user
+    application_data["user_id"] = current_user.id
+
+    # Create SQLAlchemy model instance
     db_application = JobApplication(**application_data)
 
-    # Add the new application to the database
     db.add(db_application)
-    # Commit the changes to the database and refresh the instance to get the updated data (like id, created_at, etc.)
     db.commit()
     db.refresh(db_application)
 
     return db_application
 
 # GET applications endpoint
+# GET applications endpoint
 @app.get(
-    "/applications", 
-    response_model=list[JobApplicationResponse]
+    "/applications",
+    response_model=list[JobApplicationResponse],
+)
+def get_applications(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    # Only retrieve applications belonging to the logged-in user
+    statement = (
+        select(JobApplication)
+        .where(
+            JobApplication.user_id == current_user.id
+        )
+        .order_by(
+            JobApplication.created_at.desc()
+        )
     )
-# When a user does a GET request to the /applications endpoint, this function will be called. It will retrieve all job applications from the database and return them as a list of JobApplicationResponse objects.
-def get_applications(db: Session = Depends(get_db)):
-    # Select all job applications from the database, ordered by creation date in descending order
-    statement = select(JobApplication).order_by(JobApplication.created_at.desc())
-    # db.scalars(statement).all() executes the SQL query and returns all the results as a list of JobApplication objects. 
-    # The scalars() method is used to 
+
     applications = db.scalars(statement).all()
+
     return applications
 
-# GET application by ID endpoint
 @app.get(
     "/applications/{application_id}",
     response_model=JobApplicationResponse,
 )
 def get_application(
-    application_id: int, 
+    application_id: int,
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
-    # Select the job application with the specified ID from the database
-    application = db.get(JobApplication, application_id)
-    
+    statement = select(JobApplication).where(
+        JobApplication.id == application_id,
+        JobApplication.user_id == current_user.id,
+    )
+
+    application = db.scalars(statement).first()
+
     if application is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Application not found",
         )
-        
+
     return application
 
 @app.patch(
@@ -181,58 +199,67 @@ def update_application(
     application_id: int,
     application_update: JobApplicationUpdate,
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
-    application = db.get(JobApplication, application_id)
-    
+    statement = select(JobApplication).where(
+        JobApplication.id == application_id,
+        JobApplication.user_id == current_user.id,
+    )
+
+    application = db.scalars(statement).first()
+
     if application is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Application not found",
         )
-   
-   # exclude_unset=True = only include fields that were provided in the request body (not the ones that were left out)     
-   # to avoid overwriting existing values in the database with None or default values
+
+    # Only include fields provided in the request
     update_data = application_update.model_dump(
-        exclude_unset=True)
-    
-    if "status" in update_data and update_data["status"] is not None:
+        exclude_unset=True
+    )
+
+    if (
+        "status" in update_data
+        and update_data["status"] is not None
+    ):
         update_data["status"] = update_data["status"].value
-        
+
     for field, value in update_data.items():
-        # set the attribute of the application object to the new value
         setattr(application, field, value)
-    
-    # commit() = save the changes to the database    
+
     db.commit()
-    # refresh() = update the application object with the latest data from the database (like updated_at timestamp)
     db.refresh(application)
-    
+
     return application
 
 # DELETE application endpoint
+# DELETE application endpoint
 @app.delete(
-    # Retrieves the application_id from the URL path and passes it to the delete_application function as an argument. 
-    # The function then uses this ID to find and delete the corresponding job application from the database.
     "/applications/{application_id}",
-    # 204 = no content, the request was successful but there is no content to return
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_application(
     application_id: int,
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
-    application = db.get(JobApplication, application_id)
-    
+    statement = select(JobApplication).where(
+        JobApplication.id == application_id,
+        JobApplication.user_id == current_user.id,
+    )
+
+    application = db.scalars(statement).first()
+
     if application is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Application not found",
         )
-    
-    # delete the application from the database
+
     db.delete(application)
     db.commit()
-    
+
     return None
 
 ### CALENDAR ###
@@ -246,19 +273,45 @@ def delete_application(
 def create_event(
     event_data: schemas.CalendarEventCreate,
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
     new_event = models.CalendarEvent(
         title=event_data.title,
         event_date=event_data.event_date,
         start_time=event_data.start_time,
         notes=event_data.notes,
+
+        user_id=current_user.id,
     )
-    
+
     db.add(new_event)
     db.commit()
     db.refresh(new_event)
-    
+
     return new_event
+
+# Get all events for the logged-in user 
+@app.get(
+    "/events",
+    response_model=list[schemas.CalendarEventResponse],
+)
+def get_events(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    statement = (
+        select(models.CalendarEvent)
+        .where(
+            models.CalendarEvent.user_id == current_user.id
+        )
+        .order_by(
+            models.CalendarEvent.event_date
+        )
+    )
+
+    events = db.scalars(statement).all()
+
+    return events
     
 # Delete event from calendar - will be implemented
 # Update/change event in calendar - will be implemented

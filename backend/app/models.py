@@ -1,8 +1,9 @@
 from datetime import date, datetime, time
 
 import sqlalchemy
-from sqlalchemy import Date, DateTime, String, Text, Time, func
+from sqlalchemy import Date, DateTime, String, Text, Time, func, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
+
 
 from app.database import Base
 
@@ -45,7 +46,14 @@ class User(Base):
 class JobApplication(Base):
     __tablename__ = "job_applications"
 
-# unique id for each job application (primary key)
+    # unique id for each user (foreign key) to link the job application to the user
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True,
+    )
+   
+    # unique id for each job application (primary key) 
     id: Mapped[int] = mapped_column(primary_key=True)
 
     company: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -85,6 +93,13 @@ class JobApplication(Base):
     
 class CalendarEvent(Base):
     __tablename__ = "calendar_events"
+    
+    # unique id for each calendar event foreigh key to link the calendar event to the user
+    user_id: Mapped[int] = mapped_column(
+    ForeignKey("users.id"),
+    nullable=False,
+    index=True,
+)
 
     id: Mapped[int] = mapped_column(primary_key=True)
 

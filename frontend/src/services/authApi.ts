@@ -29,6 +29,7 @@ export async function registerUser(
   return response.json()
 }
 
+/*
 
 export async function loginUser(
   loginData: LoginData
@@ -45,6 +46,35 @@ export async function loginUser(
     const errorText = await response.text()
     throw new Error(
       `Failed to login: ${response.status} ${errorText}`
+    )
+  }
+
+  return response.json()
+}
+  */
+
+export async function loginUser(
+  loginData: LoginData
+): Promise<TokenResponse> {
+
+  const response = await fetch(
+    `${API_URL}/auth/login`,
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify(loginData),
+    }
+  )
+
+  if (!response.ok) {
+    const errorText = await response.text()
+
+    throw new Error(
+      `Login failed: ${response.status} ${errorText}`
     )
   }
 

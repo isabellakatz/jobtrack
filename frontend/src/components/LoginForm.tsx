@@ -14,28 +14,32 @@ function LoginForm({ onLogin, onShowRegister }: LoginFormProps) {
     const [error, setError] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    async function handleSubmit(
-        event: React.FormEvent<HTMLFormElement>
-    ) {
-        event.preventDefault()
+async function handleSubmit(
+  event: React.FormEvent<HTMLFormElement>
+) {
+  event.preventDefault()
 
-        setError("")
-        setIsSubmitting(true)
+  setError("")
+  setIsSubmitting(true)
 
-        try {
-            const tokenResponse = await loginUser({
-                email,
-                password,
-            })
+  try {
+    const tokenResponse = await loginUser({
+      email,
+      password,
+    })
 
-            onLogin(tokenResponse.access_token)
-        } catch (error) {
-            console.error("Login failed:", error)
-            setError("Invalid email or password.")
-        } finally {
-            setIsSubmitting(false)
-        }
-    }
+    onLogin(tokenResponse.access_token)
+
+  } catch (error) {
+    console.error("Login failed:", error)
+
+    setError("Invalid email or password.")
+
+  } finally {
+    setIsSubmitting(false)
+  }
+}
+
     return (
   <main className="login-page">
     <div className="login-content">
