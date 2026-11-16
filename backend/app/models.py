@@ -31,6 +31,16 @@ class User(Base):
         sqlalchemy.DateTime,
         server_default=sqlalchemy.func.now()
     )
+    
+    first_name = sqlalchemy.Column(
+        sqlalchemy.String(100),
+        nullable=True
+    )
+
+    last_name = sqlalchemy.Column(
+        sqlalchemy.String(100),
+        nullable=True
+    )
 
 class JobApplication(Base):
     __tablename__ = "job_applications"

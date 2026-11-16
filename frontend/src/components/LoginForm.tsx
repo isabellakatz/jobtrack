@@ -4,9 +4,10 @@ import { loginUser } from "../services/authApi"
 /* Callback from  App.tsx to recieve JWT token */
 interface LoginFormProps {
     onLogin: (accessToken: string) => void
+    onShowRegister: () => void
 }
 
-function LoginForm({ onLogin }: LoginFormProps) {
+function LoginForm({ onLogin, onShowRegister }: LoginFormProps) {
 
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
@@ -120,6 +121,7 @@ function LoginForm({ onLogin }: LoginFormProps) {
           <button
             type="button"
             className="auth-link"
+            onClick={onShowRegister}
           >
             Create account
           </button>

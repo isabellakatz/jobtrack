@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 
 import LoginForm from "./components/LoginForm"
+import RegisterForm from "./components/RegisterForm"
 import ApplicationForm from "./components/ApplicationForm"
 import ApplicationList from "./components/ApplicationList"
 import Dashboard from "./components/Dashboard"
@@ -33,6 +34,9 @@ function App() {
   function handleLogin(token: string) {
     setAccessToken(token)
   }
+
+  // Function that RegisterForm expects through its onShowLogin-prop
+  const [authView, setAuthView] = useState<"login" | "register">("login")
 
   // To keep track of the current view, we use a state variable called activeView. 
   // It can be one of four values: "add", "dashboard", "applications", or "kanban". The default value is "dashboard".
@@ -293,11 +297,26 @@ function App() {
     return <p>{error}</p>
   }
 
-  if (!accessToken) {
+if (!accessToken) {
+  if (authView === "register") {
     return (
-      <LoginForm onLogin={handleLogin} />
+      <RegisterForm
+        onShowLogin={() =>
+          setAuthView("login")
+        }
+      />
     )
   }
+
+  return (
+    <LoginForm
+      onLogin={handleLogin}
+      onShowRegister={() =>
+        setAuthView("register")
+      }
+    />
+  )
+}
 
 return (
   <div className="app-layout">

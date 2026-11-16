@@ -61,6 +61,8 @@ def register_user(
     hashed_password = hash_password(user_data.password)
     
     new_user = models.User(
+        first_name=user_data.first_name,
+        last_name=user_data.last_name,
         email=user_data.email,
         hashed_password=hashed_password
     )

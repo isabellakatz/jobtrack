@@ -5,15 +5,20 @@ from pydantic import BaseModel, EmailStr, ConfigDict, Field
 
 # Data from when a user register
 class UserCreate(BaseModel):
+    first_name: str
+    last_name: str
     email: EmailStr
     password: str
 
 # Data sending back 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True) 
-    id: int
-    email: EmailStr
     
+    id: int
+    first_name: str | None
+    last_name: str | None
+    email: EmailStr
+
 # When an existing user is logging in
 class UserLogin(BaseModel):
     email: EmailStr
