@@ -36,66 +36,99 @@ function LoginForm({ onLogin }: LoginFormProps) {
         }
     }
     return (
-        <main className="login-page">
-            <div className="login-content">
+  <main className="login-page">
+    <div className="login-content">
 
-                
-                <section className="auth-form-container">
-                    <h2>Log in</h2>
+      <div className="login-intro">
+        <h1 className="typing-title">
+          Welcome to JobTrack
+        </h1>
 
-                    <form
-                        className="auth-form"
-                        onSubmit={handleSubmit}
-                    >
-                        <div className="auth-form-field">
-                            <label htmlFor="login-email">
-                                Email
-                            </label>
+        <p>
+          Keep track of your applications, interviews and opportunities.
+        </p>
+      </div>
 
-                            <input
-                                id="login-email"
-                                type="email"
-                                required
-                                value={email}
-                                onChange={(event) =>
-                                    setEmail(event.target.value)
-                                }
-                            />
-                        </div>
+      <div className="login-card">
+        <h2>Log in</h2>
 
-                        <div className="auth-form-field">
-                            <label htmlFor="login-password">
-                                Password
-                            </label>
+        <form
+          className="login-form"
+          onSubmit={handleSubmit}
+        >
+          <div className="login-field">
+            <label htmlFor="login-email">
+              Email
+            </label>
 
-                            <input
-                                id="login-password"
-                                type="password"
-                                required
-                                value={password}
-                                onChange={(event) =>
-                                    setPassword(event.target.value)
-                                }
-                            />
-                        </div>
+            <input
+              id="login-email"
+              type="email"
+              required
+              value={email}
+              onChange={(event) =>
+                setEmail(event.target.value)
+              }
+              placeholder="you@example.com"
+            />
+          </div>
 
-                        {error && (
-                            <p className="auth-error">
-                                {error}
-                            </p>
-                        )}
+          <div className="login-field">
+            <div className="login-password-label">
+              <label htmlFor="login-password">
+                Password
+              </label>
 
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? "Logging in..." : "Log in"}
-                        </button>
-                    </form>
-                </section>
+              <button
+                type="button"
+                className="auth-link"
+              >
+                Forgot password?
+              </button>
             </div>
-        </main>
-    )
+
+            <input
+              id="login-password"
+              type="password"
+              required
+              value={password}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
+              placeholder="Enter your password"
+            />
+          </div>
+
+          {error && (
+            <p className="login-error">
+              {error}
+            </p>
+          )}
+
+          <button
+            className="login-submit-button"
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Logging in..." : "Log in"}
+          </button>
+        </form>
+
+        <div className="login-register">
+          <span>Don't have an account?</span>
+
+          <button
+            type="button"
+            className="auth-link"
+          >
+            Create account
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+)
 }
 
 
