@@ -28,7 +28,7 @@ function UserMenu({
         className="user-menu-button"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {initials || "U"}
+        {initials || "NN"}
       </button>
 
 

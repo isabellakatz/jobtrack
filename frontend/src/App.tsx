@@ -29,56 +29,69 @@ import type {
 
 import "./App.css"
 
+/**
+ * Main component for JobTrack.
+ * Coordinates authentication, application data, filtering and page navigation.
+ * 
+ * API calls are defined in the service files; child components handle the UI.
+ */
 
 function App() {
 
-  // Authentication state
+  // Token received after login; used to authenticate requests to protected API endpoints.
   const [accessToken, setAccessToken] = useState<string | null>(null)
 
-  // Current user state
+  // Current user information, fetched from the backend after login. If null, no user is logged in.
   const [currentUser, setCurrentUser] = useState<User | null>(null)
 
-  // Function that LoginForm expercts through its onLogin-prop
+  // LoginForm calls this after successful authentication.
   function handleLogin(token: string) {
     setAccessToken(token)
   }
 
-  // Function that RegisterForm expects through its onShowLogin-prop
+  // Switches between login and registration while the user is logged out.
   const [authView, setAuthView] = useState<"login" | "register">("login")
 
-  // To keep track of the current view, we use a state variable called activeView. 
-  // It can be one of four values: "add", "dashboard", "applications", or "kanban". The default value is "dashboard".
+
+  // Determines which section is shown. Some values are reserved for views
+  // that are not yet rendered in this component.
   const [activeView, setActiveView] = useState<"add" | "dashboard" | "todo" | "applications" | "calendar" | "cv" | "kanban" | "contacts">("dashboard")
 
-  //The App component is the main component of the application. It fetches job applications from the backend and displays them in a list.
+  // Local list of applications fetched from the backend.
+  // Updated after successful create, update and delete requests.
   const [applications, setApplications] =
     useState<JobApplication[]>([])
 
-  // Used while applications are being loaded
+  // Tracks loading of the application list (not the current-user profile).
   const [loading, setLoading] =
     useState(true)
 
   // Stores an error message if an API request fails
   const [error, setError] = useState<string | null>(null)
 
-  // selectedApplication = keeps track of the currently selected job application
+  // ID of the application whose details are open, keeps track of the currently selected job application, null means none is selected.
   const [selectedApplicationId, setSelectedApplicationId] =
     useState<number | null>(null)
 
+  // The Dashboard and Applications views have independent status filters.
+  // "all" means that no status filtering is applied.
   const [statusFilter, setStatusFilter] =
     useState<ApplicationStatus | "all">("all")
 
-  // applicationStatusFilter = keeps track of the currently selected status filter for the application list
   const [applicationStatusFilter, setApplicationStatusFilter] =
     useState<ApplicationStatus | "all">("all")
 
-  // applicationSort = keeps track of the currently selected sort order for the application list
+  // Sort order used by the separate Applications view.
   const [applicationSort, setApplicationSort] = useState<"newest" | "oldest" | "company-az" | "company-za">("newest")
 
-  // applicationSearch = keeps track of the current search query for filtering applications by company or role
+  // Text entered into the Applications search field (filtering applications by company or role).
+  // Not implemented yet: The search field is rendered, but the search results are not displayed in the UI. 
   const [applicationSearch, setApplicationSearch] = useState("")
 
-  //const [applicationSearchResults, setApplicationSearchResults] = useState<JobApplication[]>([])
+
+  // Case-insensitive search by company or job title.
+  // TODO: This result is currently not passed to ApplicationList, so search
+  // input does not affect the displayed list yet.
   const searchedApplications =
     applicationSearch === ""
       ? applications
@@ -92,7 +105,7 @@ function App() {
             .includes(applicationSearch.toLowerCase())
       )
 
-  // filteredApplications = filters the list of applications based on the selected status filter.
+  // Filter the list shown beneath the Dashboard's status counters.
   const filteredApplications =
     statusFilter === "all"
       ? applications
@@ -101,7 +114,8 @@ function App() {
           application.status === statusFilter
       )
 
-  // applicationsViewApplications = filters the list of applications based on the selected status filter for the application list view.
+
+  // Apply the independent status filter in the Applications view.
   const applicationsViewApplications =
     applicationStatusFilter === "all"
       ? applications
@@ -110,9 +124,10 @@ function App() {
           application.status === applicationStatusFilter
       )
 
-  // sortedApplications = sorts the application list based on the selected order.
+  // Sort a copy of the Applications-view list instead of mutating React state.
+  // When sorting by date, applications with missing/invalid dates go last.
   const sortedApplications =
-    // 1. CREATE A NEW ARRAY COPY. SORT APPLICATIONS BASED ON SELECTED ORDER
+    // CREATE A NEW ARRAY COPY. SORT APPLICATIONS BASED ON SELECTED ORDER
     [...applicationsViewApplications].sort((a, b) => {
       if (
         applicationSort === "newest" ||
@@ -150,9 +165,8 @@ function App() {
       return 0
     })
 
-  // 2. LOAD APPLICATIONS WHEN APP STARTS
-  // The useEffect hook runs the code when the component loads for the first time. 
-  // It fetches the job applications from the backend and sets the state accordingly.
+  // Reload applications whenever the access token changes (e.g. on login).
+  // When logged out, clear data belonging to the previous session.
   useEffect(() => {
     // Do not load applications before the user is logged in
     if (!accessToken) {
@@ -161,12 +175,14 @@ function App() {
       return
     }
 
+    const token = accessToken
+
     async function loadApplications() {
       try {
         setLoading(true)
         setError(null)
 
-        const data = await getApplications(accessToken)
+        const data = await getApplications(token)
 
         setApplications(data)
       } catch {
@@ -180,6 +196,8 @@ function App() {
   }, [accessToken])
 
   // Load information about the logged-in user
+  // Load the user profile whenever the access token changes.
+  // A failure here is logged, but does not trigger the main error screen.
   useEffect(() => {
     if (!accessToken) {
       setCurrentUser(null)
@@ -202,7 +220,8 @@ function App() {
 
   }, [accessToken])
 
-  // 3. FIND CURRENTLY SELECTED APPLICATION
+  // Find the selected record from the current list so it stays up to date after an edit.
+  // Return null if no record matches the selected ID.F
   const selectedApplication =
     applications.find(
       (application) =>
@@ -210,7 +229,7 @@ function App() {
     ) ?? null
 
 
-  // 4. SELECT AN APPLICATION
+  // Open an application's details, or close them if it is clicked again.
   function handleSelectApplication(applicationId: number) {
     setSelectedApplicationId(currentId =>
       currentId === applicationId
@@ -218,8 +237,10 @@ function App() {
         : applicationId)
   }
 
-  // 5. CREATE A NEW APPLICATION - Is handled by the ApplicationForm component, which is a child of the App component. 
-  // The onCreate prop is passed to the ApplicationForm component, which calls the handleCreateApplication function when the form is submitted.
+
+  // ApplicationForm calls this through its onCreate prop.
+  // POST the new application, then add the returned record to local state
+  // without fetching the entire list again.
   async function handleCreateApplication(
     applicationData: JobApplicationCreate
   ) {
@@ -247,6 +268,7 @@ function App() {
     }
   }
 
+  // Dashboard calls this when a status counter is selected.
   function handleStatusSelect(
     status: ApplicationStatus | "all"
   ) {
@@ -254,7 +276,8 @@ function App() {
     //setActiveView("applications")
   }
 
-  // 6. UPDATE AN EXISTING APPLICATION
+  // ApplicationList calls this through its onUpdate prop.
+  // PATCH the application and replace its local record with the API response.
   async function handleUpdateApplication(
     applicationId: number,
     updates: JobApplicationUpdate
@@ -276,7 +299,7 @@ function App() {
         )
 
 
-      // .map() = Iterate over the current list of applications and replace the updated application with the new data.
+      // map() = creates a new array and preserves all unchanged applications.
       setApplications((currentApplications) =>
         currentApplications.map((application) =>
           application.id === updatedApplication.id
@@ -289,7 +312,8 @@ function App() {
     }
   }
 
-  // 7. NAVIGATE BETWEEN VIEWS
+  // Sidebar calls this callback to switch views without changing the URL.
+  // Reset selection and view-specific filters when navigating.
   function handleNavigate(
     view:
       | "add"
@@ -319,7 +343,8 @@ function App() {
     setActiveView(view)
   }
 
-  // LOGOUT
+  // Clear authentication and user-specific data from React state.
+  // This function does not call a separate backend logout endpoint.
   function handleLogout() {
     setAccessToken(null)
     setCurrentUser(null)
@@ -329,7 +354,8 @@ function App() {
     setActiveView("dashboard")
   }
 
-  // 8. DELETE AN APPLICATION
+  // Clear authentication and user-specific data from React state.
+  // This function does not call a separate backend logout endpoint.
   async function handleDeleteApplication(
     application: JobApplication
   ) {
@@ -359,10 +385,8 @@ function App() {
     }
   }
 
-  //9. EARLY RETURNS
-  // Still waiting for the applications to load, show a loading message. 
-  // If there was an error, show the error message. Otherwise, display the list of applications.
-
+  // Early returns: show authentication forms before the main application.
+  // Once logged in, show loading or error feedback until the main UI is ready.
   if (!accessToken) {
     if (authView === "register") {
       return (
@@ -394,12 +418,14 @@ function App() {
 
   return (
     <div className="app-layout">
+      {/* Sidebar controls navigation; App owns the activeView state. */}
       <Sidebar
         onNavigate={handleNavigate}
       />
 
       <main className="app">
 
+        {/* Show account actions after the profile request has succeeded. */}
         {currentUser && (
           <UserMenu
             user={currentUser}
@@ -415,7 +441,7 @@ function App() {
 
         <div className="app-content">
 
-          {/* ADD APPLICATION */}
+          {/* The form sends submitted data back through onCreate. */}
           {activeView === "add" && (
             <ApplicationForm
               onCreate={handleCreateApplication}
@@ -423,7 +449,8 @@ function App() {
           )}
 
 
-          {/* DASHBOARD */}
+          {/* Dashboard receives all applications for its status summary;
+              the list underneath uses the separate Dashboard status filter. */}
           {activeView === "dashboard" && (
             <>
               <section className="dashboard-section">
@@ -445,7 +472,8 @@ function App() {
           )}
 
 
-          {/* APPLICATIONS */}
+          {/* Dedicated list view with its own status, search and sort controls.
+              Note: search is not yet connected to the displayed results. */}
           {activeView === "applications" && (
             <>
               <div className="application-filters">
@@ -537,6 +565,7 @@ function App() {
               </div>
 
 
+              {/* Pass filtered/sorted records and CRUD callbacks to the list. */}
               <ApplicationList
                 applications={sortedApplications}
                 selectedApplicationId={selectedApplicationId}
@@ -549,7 +578,7 @@ function App() {
           )}
 
 
-          {/* CALENDAR */}
+          {/* Calendar view is not yet implemented. */}
           {activeView === "calendar" && (
             <Calendar />
           )}
