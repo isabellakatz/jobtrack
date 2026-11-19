@@ -21,20 +21,19 @@ from app.schemas import (
 
 app = FastAPI()
 
+# Allow requests from the Vite frontend during local development.
 app.add_middleware(
     CORSMiddleware,
-    # The backend allows requests from the frontend running on http://localhost:5173 (the default port for Vite development server)
     allow_origins=["http://localhost:5173"],
     allow_credentials=True,
-    # allows all HTTP methods (GET, POST, PUT, DELETE, etc.) and headers to be sent in requests from the frontend
     allow_methods=["*"],
-    # allows all HTTP-headers to be sent in requests from the frontend (will be added later)
     allow_headers=["*"],
 )
 
-# Root endpoint to check if the API is running
+# --- Authentication ---
 @app.get("/")
 def root():
+    # Return a simple message to indicate that the API is running
     return {"message": "Oh yeah, JobTrack API is running!"}
 
 # Root endpoint for the current user to get their personal information
@@ -45,10 +44,11 @@ def root():
 def get_current_user_info(
     current_user: models.User = Depends(get_current_user),
 ):
+    # Return the current user's information
     return current_user
 
 
-# (POST) Endpoint for Register new user
+# (Endpoint for Register new user
 @app.post(
     "/auth/register",
     response_model=schemas.UserResponse,
@@ -86,7 +86,7 @@ def register_user(
         
     return new_user
 
-### (POST) Endpoint for Login ###
+### Endpoint for Login 
 @app.post(
     "/auth/login",
     response_model=schemas.TokenResponse,
@@ -101,7 +101,8 @@ def login_user(
         .first()
     )
 
-    if not user:
+    # Use the same error for an unknown email and an incorrect password.
+    if not user or not verify_password(login_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -125,7 +126,8 @@ def login_user(
         "token_type": "bearer",
     }
 
-# POST application endpoint
+# --- Job applications ---
+
 @app.post(
     "/applications",
     response_model=JobApplicationResponse,
@@ -154,8 +156,7 @@ def create_application(
 
     return db_application
 
-# GET applications endpoint
-# GET applications endpoint
+
 @app.get(
     "/applications",
     response_model=list[JobApplicationResponse],
@@ -188,6 +189,7 @@ def get_application(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
+    # Update only the provided fields of an application owned by the user.
     statement = select(JobApplication).where(
         JobApplication.id == application_id,
         JobApplication.user_id == current_user.id,
@@ -226,17 +228,29 @@ def update_application(
             detail="Application not found",
         )
 
-    # Only include fields provided in the request
-    update_data = application_update.model_dump(
-        exclude_unset=True
-    )
+        # Omitted fields must stay unchanged; an explicit null is still included.
+    update_data = application_update.model_dump(exclude_unset=True)
 
-    if (
-        "status" in update_data
-        and update_data["status"] is not None
-    ):
+    # These columns cannot be null in the database.
+    non_nullable_fields = ("company", "job_title", "status")
+    invalid_null_fields = [
+        field
+        for field in non_nullable_fields
+        if field in update_data and update_data[field] is None
+    ]
+    if invalid_null_fields:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "Required fields cannot be null: "
+                + ", ".join(invalid_null_fields)
+            ),
+        )
+
+    if "status" in update_data:
         update_data["status"] = update_data["status"].value
-
+        
+    
     for field, value in update_data.items():
         setattr(application, field, value)
 
@@ -245,7 +259,6 @@ def update_application(
 
     return application
 
-# DELETE application endpoint
 # DELETE application endpoint
 @app.delete(
     "/applications/{application_id}",
@@ -274,7 +287,7 @@ def delete_application(
 
     return None
 
-### CALENDAR ###
+# --- Calendar events ---
 
 # Create a new event in calendar #
 @app.post(
@@ -325,5 +338,4 @@ def get_events(
 
     return events
     
-# Delete event from calendar - will be implemented
-# Update/change event in calendar - will be implemented
+# TODO: Add update and delete endpoints for calendar events.
